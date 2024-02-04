@@ -27,9 +27,8 @@ RUN usermod -aG sudo ubuntu && \
     echo 'ubuntu ALL=(ALL) NOPASSWD: ALL' | EDITOR='tee -a' visudo
 
 # System: Reconfigure locales
-RUN update-locale "LANG=en_US.UTF-8" && \
-    locale-gen --purge "en_US.UTF-8" && \
-    dpkg-reconfigure --frontend noninteractive locale
+RUN locale-gen --purge en_US.UTF-8 && \
+    echo -e 'LANG="en_US.UTF-8"\nLANGUAGE="en_US:en"\n' > /etc/default/locale
 
 # System: Add workspaces directory and set owner
 RUN mkdir /workspaces
