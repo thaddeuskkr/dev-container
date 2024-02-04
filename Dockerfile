@@ -9,8 +9,8 @@ RUN yes | unminimize
 RUN apt-get update && apt-get upgrade -y
 RUN apt-get install -y \
     openssh-server \
-    sudo nano wget curl git ca-certificates \
-    neofetch build-essential \
+    sudo nano wget curl git ack ca-certificates \
+    neofetch build-essential net-tools locales unzip zip gzip tar ufw \
     libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev libncursesw5-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev
 
 # System: Install Docker
@@ -25,6 +25,11 @@ RUN apt-get update && apt-get install -y docker-ce docker-ce-cli containerd.io d
 RUN usermod -aG sudo ubuntu && \
     usermod -aG docker ubuntu && \
     echo 'ubuntu ALL=(ALL) NOPASSWD: ALL' | EDITOR='tee -a' visudo
+
+# System: Reconfigure locales
+RUN update-locale "LANG=en_US.UTF-8" && \
+    locale-gen --purge "en_US.UTF-8" && \
+    dpkg-reconfigure --frontend noninteractive locale
 
 # System: Add workspaces directory and set owner
 RUN mkdir /workspaces
