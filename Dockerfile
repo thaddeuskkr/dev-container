@@ -8,9 +8,9 @@ RUN yes | unminimize
 # System: Install essentials
 RUN apt-get update && apt-get upgrade -y
 RUN apt-get install -y \
-    openssh-server \
-    sudo nano wget curl git ack ca-certificates \
-    neofetch build-essential net-tools locales unzip zip gzip tar ufw \
+    openssh-server openssh-client neofetch \
+    sudo nano wget curl lsof htop git ack ca-certificates build-essential locales ufw rsyslog strace unzip zip gzip tar \
+    iputils-ping iputils-tracepath traceroute iproute2 iproute2-doc dnsutils mmdb-bin nmap ngrep tcpdump ffmpeg \
     libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev libncursesw5-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev
 
 # System: Install Docker
