@@ -10,7 +10,7 @@ RUN apt-get update && apt-get upgrade -y
 RUN apt-get install -y \
     openssh-server openssh-client neofetch \
     sudo nano wget curl lsof htop git ack ca-certificates build-essential locales ufw rsyslog strace unzip zip gzip tar \
-    iputils-ping iputils-tracepath traceroute iproute2 iproute2-doc dnsutils mmdb-bin nmap ngrep tcpdump ffmpeg \
+    iputils-ping iputils-tracepath traceroute iproute2 iproute2-doc dnsutils mmdb-bin nmap ngrep tcpdump ffmpeg pipx \
     libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev libncursesw5-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev
 
 # System: Install Docker
@@ -35,7 +35,10 @@ RUN mkdir /workspaces
 
 USER ubuntu
 
-# Python: Install pyenv
+# Python: Complete pipx install
+RUN pipx ensurepath
+
+# Python: Install pyenv and latest Python 3
 RUN curl https://pyenv.run | bash
 RUN echo 'export PYENV_ROOT="$HOME/.pyenv"' >> ~/.bashrc && \
     echo 'command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"' >> ~/.bashrc && \
@@ -43,9 +46,15 @@ RUN echo 'export PYENV_ROOT="$HOME/.pyenv"' >> ~/.bashrc && \
 RUN echo 'export PYENV_ROOT="$HOME/.pyenv"' >> ~/.profile && \
     echo 'command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"' >> ~/.profile && \
     echo 'eval "$(pyenv init -)"' >> ~/.profile
+RUN pyenv install $(pyenv latest 3)
+RUN pyenv global 3
 
-# Node: Install nvm
+# Python: Install Poetry
+RUN curl -sSL https://install.python-poetry.org | python3 -
+
+# Node: Install nvm and latest LTS of Node
 RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+RUN nvm install --lts
 
 # Rust: Install rustup
 RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
