@@ -10,7 +10,7 @@ RUN apt-get update && apt-get upgrade -y
 RUN apt-get install -y \
     openssh-server openssh-client neofetch \
     sudo nano wget curl lsof htop git ack ca-certificates build-essential locales ufw rsyslog strace unzip zip gzip tar \
-    iputils-ping iputils-tracepath traceroute iproute2 iproute2-doc dnsutils mmdb-bin nmap ngrep tcpdump ffmpeg pipx \
+    iputils-ping iputils-tracepath traceroute iproute2 iproute2-doc dnsutils mmdb-bin nmap ngrep tcpdump ffmpeg \
     libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev libncursesw5-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev
 
 # System: Install Docker
@@ -35,9 +35,6 @@ RUN mkdir /workspaces
 
 USER ubuntu
 
-# Python: Complete pipx install
-RUN pipx ensurepath
-
 # Python: Install pyenv and latest Python 3
 RUN curl https://pyenv.run | bash
 RUN echo 'export PYENV_ROOT="$HOME/.pyenv"' >> ~/.bashrc && \
@@ -46,8 +43,7 @@ RUN echo 'export PYENV_ROOT="$HOME/.pyenv"' >> ~/.bashrc && \
 RUN echo 'export PYENV_ROOT="$HOME/.pyenv"' >> ~/.profile && \
     echo 'command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"' >> ~/.profile && \
     echo 'eval "$(pyenv init -)"' >> ~/.profile
-RUN pyenv install $(pyenv latest 3)
-RUN pyenv global 3
+RUN pyenv install $(pyenv latest 3) && pyenv global 3
 
 # Python: Install Poetry
 RUN curl -sSL https://install.python-poetry.org | python3 -
