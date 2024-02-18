@@ -28,7 +28,7 @@ RUN usermod -aG sudo ubuntu && \
 
 # System: Reconfigure locales
 RUN locale-gen --purge en_US.UTF-8 && \
-    echo -e 'LANG="en_US.UTF-8"\nLANGUAGE="en_US:en"\n' > /etc/default/locale
+    update-locale LANG=en_US.UTF-8
 
 # System: Add workspaces directory and set owner
 RUN mkdir /workspaces
