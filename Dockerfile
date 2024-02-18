@@ -54,7 +54,10 @@ RUN curl -sSL https://install.python-poetry.org | python3 -
 
 # Node: Install nvm and latest LTS of Node
 RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
-RUN nvm install --lts
+RUN export NVM_DIR="$HOME/.nvm" && \
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" && \
+    [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion" && \
+    nvm install --lts
 
 # Rust: Install rustup
 RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
