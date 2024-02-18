@@ -46,7 +46,7 @@ RUN echo 'export PYENV_ROOT="$HOME/.pyenv"' >> ~/.profile && \
 RUN export PYENV_ROOT="$HOME/.pyenv" && \
     command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH" && \
     eval "$(pyenv init -)" && \
-    pyenv install $(pyenv latest 3) && \
+    pyenv install $(pyenv latest --known 3) && \
     pyenv global 3
 
 # Python: Install Poetry
