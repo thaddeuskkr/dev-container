@@ -26,6 +26,8 @@ docker run -d \
 --hostname dev \
 --restart unless-stopped \
 -p 2222:22 \
+-e PASSWORD="YOUR_PASSWORD" \
+-e KEYS="YOUR_KEYS" \
 -v ~/.gnupg:/volumes/.gnupg:ro \
 -v ~/.gitconfig:/volumes/.gitconfig:ro \
 -v ./workspaces:/workspaces \
