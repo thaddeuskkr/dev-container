@@ -6,6 +6,8 @@ mkdir -p /home/ubuntu/.ssh
 mkdir -p /home/ubuntu/.gnupg
 echo "$KEYS\n" >> /home/ubuntu/.ssh/authorized_keys
 cp -R /volumes/.gnupg/* /home/ubuntu/.gnupg
+cp /volumes/.gitconfig /home/ubuntu
 chown -R ubuntu:ubuntu /home/ubuntu/.ssh
 chown -R ubuntu:ubuntu /home/ubuntu/.gnupg
+chown -R ubuntu:ubuntu /home/ubuntu/.gitconfig
 /usr/sbin/sshd -D
