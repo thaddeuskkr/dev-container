@@ -18,7 +18,7 @@ RUN apt-get install -y \
     iputils-ping iputils-tracepath traceroute iproute2 iproute2-doc dnsutils mmdb-bin nmap ngrep tcpdump ffmpeg jq needrestart unattended-upgrades \
     libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev libncursesw5-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev
 
-# System: Install fastfetch
+# System: Install the latest version of fastfetch
 RUN wget https://github.com/fastfetch-cli/fastfetch/releases/download/$(curl -s https://api.github.com/repos/fastfetch-cli/fastfetch/releases/latest | jq -r '.tag_name')/fastfetch-linux-x86_64.deb && \
     dpkg -i fastfetch-linux-x86_64.deb && \
     rm -rf fastfetch-linux-x86_64.deb
