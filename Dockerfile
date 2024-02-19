@@ -1,10 +1,10 @@
 FROM ubuntu:rolling
 
-LABEL org.opencontainers.image.url=https://github.com/thaddeuskkr/dev-container \
-      org.opencontainers.image.source=https://github.com/thaddeuskkr/dev-container \
-      org.opencontainers.image.title=dev-container \
-      org.opencontainers.image.description=A development container running the latest rolling release of Ubuntu. \
-      org.opencontainers.image.authors=thaddeuskkr
+LABEL org.opencontainers.image.url="https://github.com/thaddeuskkr/dev-container" \
+      org.opencontainers.image.source="https://github.com/thaddeuskkr/dev-container" \
+      org.opencontainers.image.title="dev-container" \
+      org.opencontainers.image.description="A development container running the latest rolling release of Ubuntu." \
+      org.opencontainers.image.authors="thaddeuskkr"
 
 USER root
 
