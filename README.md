@@ -3,7 +3,7 @@
 ## Features
 - Preinstalled tools (pyenv, poetry, nvm, rustup, docker)
 - SSH server for remote development using Visual Studio Code or JetBrains IDEs
-- Passthrough of GPG and SSH keys, along with Git configurations (global)
+- Passthrough of GPG and SSH keys, along with Git configurations
 - Latest Ubuntu rolling release (unminimized)
 
 ## Setup
