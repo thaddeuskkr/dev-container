@@ -1,32 +1,23 @@
 services:
-  d0:
-    container_name: dev-0
-    hostname: d0
-    build: .
+  dev:
+    container_name: dev-container
+    hostname: dev
+    image: ghcr.io/thaddeuskkr/dev-container:main
     restart: unless-stopped
-    tty: true
-    stdin_open: true
     environment:
-      PASSWORD: wil3jX5a08Ck
+      PASSWORD: YOUR_PASSWORD # This is set for the users "ubuntu" and "root"
+      KEYS: | # A list of public keys to copy to ~/.ssh/authorized_keys
+        ssh-rsa abc
     ports:
-      - 6900:22
-      - 6910:8080
+      - "2222:22"
     volumes:
-      - ./d0:/workspaces
-  d1:
-    container_name: dev-1
-    hostname: d1
-    build: .
-    restart: unless-stopped
-    tty: true
-    stdin_open: true
-    environment:
-      PASSWORD: h6Ff6d6T0a63
-    ports:
-      - 6901:22
-      - 6911:8080
-    volumes:
-      - ./d1:/workspaces
+      - ~/.gnupg:/volumes/.gnupg:ro
+      - ~/.gitconfig:/volumes/.gitconfig:ro
+      - ./workspaces:/workspaces
+      - home:/home/ubuntu
+
+volumes:
+  home:
 
 networks:
   default:
