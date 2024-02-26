@@ -14,7 +14,7 @@ RUN yes | unminimize
 RUN apt-get update && apt-get upgrade -y
 RUN apt-get install -y \
     openssh-server openssh-client \
-    sudo nano wget curl lsof htop git ack ca-certificates build-essential locales ufw rsyslog strace unzip zip gzip tar command-not-found \
+    sudo nano wget curl lsof htop git ack bc ca-certificates build-essential locales ufw rsyslog strace unzip zip gzip tar command-not-found \
     iputils-ping iputils-tracepath traceroute iproute2 iproute2-doc dnsutils mmdb-bin nmap ngrep tcpdump ffmpeg jq needrestart unattended-upgrades \
     libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev libncursesw5-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev
 
