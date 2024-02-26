@@ -11,8 +11,7 @@ USER root
 RUN yes | unminimize
 
 # System: Install essentials
-RUN apt-get update && apt-get upgrade -y
-RUN apt-get install -y --fix-missing \
+RUN apt-get update && apt-get upgrade -y && apt-get install -y \
     openssh-server openssh-client \
     sudo nano wget curl lsof htop git ack bc ca-certificates build-essential locales ufw rsyslog strace unzip zip gzip tar command-not-found \
     iputils-ping iputils-tracepath traceroute iproute2 iproute2-doc dnsutils mmdb-bin nmap ngrep tcpdump ffmpeg jq needrestart unattended-upgrades \
