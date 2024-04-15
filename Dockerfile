@@ -93,6 +93,4 @@ USER root
 
 COPY init /.init
 
-EXPOSE 22
-
 CMD ["/.init"]
