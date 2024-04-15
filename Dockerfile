@@ -12,7 +12,6 @@ RUN yes | unminimize
 
 # System: Install essentials
 RUN apt-get update && apt-get upgrade -y && apt-get install -y \
-    openssh-server openssh-client \
     sudo nano wget curl lsof htop git ack ca-certificates build-essential locales ufw rsyslog strace unzip zip gzip tar command-not-found screen bc \
     iputils-ping iputils-tracepath traceroute iproute2 iproute2-doc dnsutils mmdb-bin nmap ngrep tcpdump ffmpeg jq needrestart unattended-upgrades cloc \
     libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev libncursesw5-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev 
@@ -21,6 +20,14 @@ RUN apt-get update && apt-get upgrade -y && apt-get install -y \
 RUN wget https://github.com/fastfetch-cli/fastfetch/releases/download/$(curl -s https://api.github.com/repos/fastfetch-cli/fastfetch/releases/latest | jq -r '.tag_name')/fastfetch-linux-amd64.deb && \
     dpkg -i fastfetch-linux-amd64.deb && \
     rm -rf fastfetch-linux-amd64.deb
+
+# System: Install Code CLI (Visual Studio Code)
+RUN curl -sL "https://code.visualstudio.com/sha/download?build=stable&os=cli-alpine-x64" -o /tmp/vscode-cli.tar.gz && \
+    tar -xf /tmp/vscode-cli.tar.gz -C /usr/bin && \
+    rm -rf /tmp/vscode-cli.tar.gz && \
+    mkdir -p /data/cli && \
+    mkdir -p /data/server && \
+    mkdir -p /data/extensions
 
 # System: Install Docker
 RUN install -m 0755 -d /etc/apt/keyrings && \
@@ -85,7 +92,5 @@ RUN curl -s "https://get.sdkman.io" | bash
 USER root
 
 COPY init /.init
-
-EXPOSE 22
 
 CMD ["/.init"]

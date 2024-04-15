@@ -1,9 +1,9 @@
 # Development Container
+A development container running a Visual Studio Code Tunnel server for all your remote development needs.
 
 ## Features
-- Preinstalled tools (pyenv, poetry, nvm, rustup, docker)
-- SSH server for remote development using Visual Studio Code or JetBrains IDEs
-- Passthrough of GPG and SSH keys, along with Git configurations
+- Preinstalled tools (pyenv, poetry, nvm, rustup, sdkman, docker)
+- Passthrough of GPG keys, along with Git configurations
 - Latest Ubuntu rolling release (unminimized)
 
 ## Setup
@@ -25,12 +25,12 @@ docker run -d \
 --name dev-container \
 --hostname dev \
 --restart unless-stopped \
--p 2222:22 \
 -e PASSWORD="YOUR_PASSWORD" \
--e KEYS="YOUR_KEYS" \
 -v ~/.gnupg:/volumes/.gnupg:ro \
 -v ~/.gitconfig:/volumes/.gitconfig:ro \
 -v ./workspaces:/workspaces \
+-v ./data/:/data \
 -v home:/home/ubuntu \
 ghcr.io/thaddeuskkr/dev-container:main
 ```
+The Docker `run` command above tries to replicate the behaviour from the Docker Compose file - there might be some discrepancies.

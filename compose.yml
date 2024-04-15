@@ -1,24 +1,18 @@
 services:
   dev:
     container_name: dev-container
-    hostname: dev
+    hostname: dev # The hostname is the name of the tunnel (by default)
     image: ghcr.io/thaddeuskkr/dev-container:main
     restart: unless-stopped
     environment:
       PASSWORD: YOUR_PASSWORD # This is set for the users "ubuntu" and "root"
-      KEYS: | # A list of public keys to copy to ~/.ssh/authorized_keys
-        ssh-rsa abc
-    ports:
-      - "2222:22"
     volumes:
       - ~/.gnupg:/volumes/.gnupg:ro
       - ~/.gitconfig:/volumes/.gitconfig:ro
       - ./workspaces:/workspaces
+      - ./data/:/data
+      # - /var/run/docker.sock:/var/run/docker.sock # Optional - if you want to use Docker within the container
       - home:/home/ubuntu
 
 volumes:
   home:
-
-networks:
-  default:
-    name: dev
