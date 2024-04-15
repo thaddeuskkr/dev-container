@@ -7,6 +7,8 @@ name: Docker
 
 on:
   push:
+    branches:
+      - '*'
     paths:
       - 'Dockerfile'
       - 'init'
@@ -14,6 +16,8 @@ on:
     # Publish semver tags as releases.
     tags: [ 'v*.*.*' ]
   pull_request:
+    branches:
+      - '*'
 
 env:
   # Use docker.io for Docker Hub if empty
