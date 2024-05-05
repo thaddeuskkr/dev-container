@@ -60,8 +60,7 @@ RUN mkdir /workspaces
 USER ubuntu
 
 # Python: Complete pipx installation
-RUN pipx ensurepath && \
-    pipx ensurepath --global
+RUN pipx ensurepath
 
 # Python: Install pyenv and latest Python 3
 RUN curl https://pyenv.run | bash
