@@ -12,7 +12,7 @@ RUN yes | unminimize
 
 # System: Install essentials
 RUN apt-get update && apt-get upgrade -y && apt-get install -y \
-    sudo nano wget curl lsof htop git ack ca-certificates build-essential locales ufw rsyslog strace unzip zip gzip tar command-not-found screen bc \
+    sudo nano wget curl lsof htop git ack ca-certificates build-essential locales ufw rsyslog strace unzip zip gzip tar command-not-found screen bc pipx \
     iputils-ping iputils-tracepath traceroute iproute2 iproute2-doc dnsutils mmdb-bin nmap ngrep tcpdump ffmpeg jq needrestart unattended-upgrades cloc \
     libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev libncursesw5-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev 
 
@@ -59,6 +59,10 @@ RUN mkdir /workspaces
 
 USER ubuntu
 
+# Python: Complete pipx installation
+RUN pipx ensurepath && \
+    pipx ensurepath --global
+
 # Python: Install pyenv and latest Python 3
 RUN curl https://pyenv.run | bash
 RUN echo 'export PYENV_ROOT="$HOME/.pyenv"' >> ~/.bashrc && \
@@ -74,7 +78,7 @@ RUN export PYENV_ROOT="$HOME/.pyenv" && \
     pyenv global 3
 
 # Python: Install Poetry
-RUN curl -sSL https://install.python-poetry.org | python3 -
+RUN pipx install poetry
 
 # Node: Install nvm and latest LTS of Node
 RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
