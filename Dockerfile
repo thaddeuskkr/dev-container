@@ -73,6 +73,9 @@ RUN export PYENV_ROOT="$HOME/.pyenv" && \
     pyenv install $(pyenv latest --known 3) && \
     pyenv global 3
 
+# Reload bash for environment variables to load
+RUN exec bash
+
 # Python: Install pipx
 RUN python3 -m pip install --user pipx
 RUN python3 -m pipx ensurepath
