@@ -10,9 +10,9 @@ USER root
 # System: Unminimize
 RUN yes | unminimize
 
-# System: Install essentials
+# System: Install packages
 RUN apt-get update && apt-get upgrade -y && apt-get install -y \
-    sudo nano wget curl lsof htop git ack ca-certificates build-essential locales ufw rsyslog strace unzip zip gzip tar command-not-found screen bc pipx \
+    sudo nano wget curl lsof htop git ack ca-certificates build-essential locales ufw rsyslog strace unzip zip gzip tar command-not-found screen bc etherwake \
     iputils-ping iputils-tracepath traceroute iproute2 iproute2-doc dnsutils mmdb-bin nmap ngrep tcpdump ffmpeg jq needrestart unattended-upgrades cloc \
     libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev libncursesw5-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev 
 
@@ -54,13 +54,10 @@ RUN usermod -aG sudo ubuntu && \
 RUN locale-gen --purge en_US.UTF-8 && \
     update-locale LANG=en_US.UTF-8
 
-# System: Add workspaces directory and set owner
+# System: Add workspaces directory
 RUN mkdir /workspaces
 
 USER ubuntu
-
-# Python: Complete pipx installation
-RUN pipx ensurepath
 
 # Python: Install pyenv and latest Python 3
 RUN curl https://pyenv.run | bash
@@ -76,11 +73,16 @@ RUN export PYENV_ROOT="$HOME/.pyenv" && \
     pyenv install $(pyenv latest --known 3) && \
     pyenv global 3
 
+# Python: Install pipx
+RUN python3 -m pip install --user pipx
+RUN python3 -m pipx ensurepath
+RUN pipx --global ensurepath
+
 # Python: Install Poetry
 RUN pipx install poetry
 
-# Node: Install nvm and latest LTS of Node
-RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+# Node: Install latest nvm and latest LTS of Node
+RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/$(curl -s https://api.github.com/repos/nvm-sh/nvm/releases/latest | jq -r '.tag_name')/install.sh | bash
 RUN export NVM_DIR="$HOME/.nvm" && \
     [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" && \
     [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion" && \
