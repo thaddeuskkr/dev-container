@@ -73,12 +73,8 @@ RUN export PYENV_ROOT="$HOME/.pyenv" && \
     pyenv install $(pyenv latest --known 3) && \
     pyenv global 3
 
-# Python: Install pipx and Poetry
-RUN exec bash && \
-    python3 -m pip install --user pipx && \
-    python3 -m pipx ensurepath && \
-    pipx --global ensurepath && \
-    pipx install poetry
+# Python: Install Poetry
+RUN curl -sSL https://install.python-poetry.org | python3 -
 
 # Node: Install latest nvm and latest LTS of Node
 RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/$(curl -s https://api.github.com/repos/nvm-sh/nvm/releases/latest | jq -r '.tag_name')/install.sh | bash
