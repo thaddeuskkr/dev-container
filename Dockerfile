@@ -76,9 +76,7 @@ RUN export PYENV_ROOT="$HOME/.pyenv" && \
     pyenv install $(pyenv latest --known 3) && \
     pyenv global 3
 
-# Python: Install Poetry
-RUN su - $USER -c 'curl -sSL https://install.python-poetry.org | python3 -'
-
+USER ubuntu
 # Node: Install latest nvm and latest LTS of Node
 RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/$(curl -s https://api.github.com/repos/nvm-sh/nvm/releases/latest | jq -r '.tag_name')/install.sh | bash
 RUN export NVM_DIR="$HOME/.nvm" && \
@@ -93,6 +91,9 @@ RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
 RUN curl -s "https://get.sdkman.io" | bash
 
 USER root
+
+# Python: Install Poetry
+RUN su - ubuntu -c 'curl -sSL https://install.python-poetry.org | python3 -'
 
 COPY init /.init
 
