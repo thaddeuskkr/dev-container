@@ -77,7 +77,7 @@ RUN export PYENV_ROOT="$HOME/.pyenv" && \
     pyenv global 3
 
 # Python: Install Poetry
-RUN curl -sSL https://install.python-poetry.org | python3 -
+RUN su - $USER -c 'curl -sSL https://install.python-poetry.org | python3 -'
 
 # Node: Install latest nvm and latest LTS of Node
 RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/$(curl -s https://api.github.com/repos/nvm-sh/nvm/releases/latest | jq -r '.tag_name')/install.sh | bash
