@@ -6,6 +6,8 @@ name: Docker
 # documentation.
 
 on:
+  schedule:
+    - cron: "0 0 * * *"
   workflow_dispatch:
   push:
     branches:
@@ -37,14 +39,30 @@ jobs:
       id-token: write
 
     steps:
+      - name: Clear cache
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const caches = await github.rest.actions.getActionsCacheList({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+            });
+            for (const cache of caches.data.actions_caches) {
+              github.rest.actions.deleteActionsCacheById({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                cache_id: cache.id,
+              })
+            }
+
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       # Install the cosign tool except on PR
       # https://github.com/sigstore/cosign-installer
       - name: Install cosign
         if: github.event_name != 'pull_request'
-        uses: sigstore/cosign-installer@v3.5.0
+        uses: sigstore/cosign-installer@v3
         with:
           cosign-release: 'v2.2.4'
 
@@ -75,6 +93,7 @@ jobs:
             type=ref,event=branch
             type=ref,event=pr
             type=sha,format=short,prefix=,suffix=
+            type=schedule,pattern={{date 'YYYYMMDD'}}
 
       # Build and push Docker image with Buildx (don't push on PR)
       # https://github.com/docker/build-push-action
