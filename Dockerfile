@@ -90,6 +90,13 @@ RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
 # Java / Kotlin: Install SDKMAN
 RUN curl -s "https://get.sdkman.io" | bash
 
+# Nim: Install Nim
+RUN curl https://nim-lang.org/choosenim/init.sh -sSf > init.sh && \
+    sh init.sh -y && \
+    rm -rf init.sh && \
+    echo 'export PATH=/home/ubuntu/.nimble/bin:$PATH' >> ~/.profile && \
+    echo 'export PATH=/home/ubuntu/.nimble/bin:$PATH' >> ~/.bashrc && \
+
 USER root
 
 # Python: Install Poetry
