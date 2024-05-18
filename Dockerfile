@@ -95,7 +95,7 @@ RUN curl https://nim-lang.org/choosenim/init.sh -sSf > ~/init.sh && \
     sh ~/init.sh -y && \
     rm -rf ~/init.sh && \
     echo 'export PATH=/home/ubuntu/.nimble/bin:$PATH' >> ~/.profile && \
-    echo 'export PATH=/home/ubuntu/.nimble/bin:$PATH' >> ~/.bashrc && \
+    echo 'export PATH=/home/ubuntu/.nimble/bin:$PATH' >> ~/.bashrc
 
 USER root
 
