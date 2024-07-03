@@ -87,6 +87,9 @@ RUN export NVM_DIR="$HOME/.nvm" && \
 # Rust: Install rustup
 RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
 
+# Bun: Install Bun
+RUN curl -fsSL https://bun.sh/install | bash
+
 # Java / Kotlin: Install SDKMAN
 RUN curl -s "https://get.sdkman.io" | bash
 
