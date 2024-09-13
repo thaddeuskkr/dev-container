@@ -13,9 +13,9 @@ on:
     branches:
       - '*'
     paths:
-      - 'Dockerfile'
+      - 'Dockerfile_amd64'
       - 'init'
-      - '.github/workflows/docker-publish.yml'
+      - '.github/workflows/docker-amd64.yml'
     # Publish semver tags as releases.
     tags: [ 'v*.*.*' ]
   pull_request:
@@ -102,7 +102,7 @@ jobs:
         id: build-and-push
         uses: docker/build-push-action@v5
         with:
-          context: .
+          context: ./Dockerfile_amd64
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
