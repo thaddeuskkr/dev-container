@@ -13,7 +13,7 @@ on:
     branches:
       - '*'
     paths:
-      - 'Dockerfile_amd64'
+      - 'amd64.Dockerfile'
       - 'init'
       - '.github/workflows/docker-amd64.yml'
     # Publish semver tags as releases.
@@ -29,7 +29,7 @@ env:
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  build:
+  build-amd64:
     runs-on: ubuntu-latest
     permissions:
       actions: write
@@ -102,7 +102,7 @@ jobs:
         id: build-and-push
         uses: docker/build-push-action@v5
         with:
-          context: ./Dockerfile_amd64
+          context: ./amd64.Dockerfile
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
