@@ -64,8 +64,6 @@ jobs:
       - name: Install cosign
         if: github.event_name != 'pull_request'
         uses: sigstore/cosign-installer@v3
-        with:
-          cosign-release: 'v2.2.4'
 
       # Set up BuildKit Docker container builder to be able to build
       # multi-platform images and export cache
@@ -95,6 +93,7 @@ jobs:
             type=ref,event=pr
             type=sha,format=short,prefix=,suffix=
             type=schedule,pattern={{date 'YYYYMMDD'}}
+            type=raw,value=amd64
 
       # Build and push Docker image with Buildx (don't push on PR)
       # https://github.com/docker/build-push-action
