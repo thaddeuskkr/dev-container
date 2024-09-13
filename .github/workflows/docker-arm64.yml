@@ -30,7 +30,7 @@ env:
 
 jobs:
   build-arm64:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     permissions:
       actions: write
       contents: read
