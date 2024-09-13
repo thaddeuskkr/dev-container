@@ -13,7 +13,7 @@ on:
     branches:
       - '*'
     paths:
-      - 'Dockerfile_arm64'
+      - 'arm64.Dockerfile'
       - 'init'
       - '.github/workflows/docker-arm64.yml'
     # Publish semver tags as releases.
