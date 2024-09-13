@@ -5,6 +5,7 @@ A development container running a Visual Studio Code Tunnel server for all your 
 - Preinstalled tools (pyenv, poetry, nvm, rustup, sdkman, docker)
 - Passthrough of GPG keys, along with Git configurations
 - Latest Ubuntu rolling release (unminimized)
+- Built for multiple architectures
 
 ## Setup
 ### Prerequisites:
@@ -34,3 +35,4 @@ docker run -d \
 ghcr.io/thaddeuskkr/dev-container:main
 ```
 The Docker `run` command above tries to replicate the behaviour from the Docker Compose file - there might be some discrepancies.
+**Note:** If you are using the `arm64` architecture, use `ghcr.io/thaddeuskkr/dev-container:main-arm64`, or `ghcr.io/thaddeuskkr/dev-container:arm64` in the above command.
