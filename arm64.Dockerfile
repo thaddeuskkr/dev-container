@@ -7,6 +7,9 @@ LABEL source="https://github.com/thaddeuskkr/dev-container"
 
 USER root
 
+# System: Install unminimize
+RUN apt-get update -y && apt-get install -y unminimize
+
 # System: Unminimize
 RUN yes | unminimize
 
