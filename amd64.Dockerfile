@@ -24,9 +24,9 @@ RUN wget https://github.com/fastfetch-cli/fastfetch/releases/download/$(curl -s 
     rm -rf fastfetch-linux-amd64.deb
 
 # System: Install Code CLI (Visual Studio Code)
-RUN curl -sL "https://code.visualstudio.com/sha/download?build=stable&os=cli-alpine-x64" -o /tmp/vscode-cli.tar.gz && \
-    tar -xf /tmp/vscode-cli.tar.gz -C /usr/bin && \
-    rm -rf /tmp/vscode-cli.tar.gz && \
+RUN curl -sL "https://code.visualstudio.com/sha/download?build=stable&os=cli-alpine-x64" -o /tmp/vscode-cli.tar && \
+    tar -xf /tmp/vscode-cli.tar -C /usr/bin && \
+    rm -rf /tmp/vscode-cli.tar && \
     mkdir -p /data/cli && \
     mkdir -p /data/server && \
     mkdir -p /data/extensions
