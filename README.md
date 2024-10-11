@@ -6,6 +6,7 @@ A development container running a Visual Studio Code Tunnel server for all your 
 - Passthrough of GPG keys, along with Git configurations
 - Latest Ubuntu rolling release (unminimized)
 - Built for multiple architectures
+- Daily scheduled builds
 
 ## Setup
 ### Prerequisites:
