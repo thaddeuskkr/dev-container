@@ -15,7 +15,7 @@ RUN yes | unminimize
 
 # System: Install packages
 RUN apt-get update && apt-get upgrade -y && apt-get install -y \
-    sudo nano wget curl lsof htop git ack ca-certificates build-essential locales ufw rsyslog strace unzip zip gzip tar command-not-found screen bc fzf ffmpeg jq needrestart unattended-upgrades cloc \
+    sudo nano wget curl lsof htop git ack ca-certificates build-essential gdb locales rsyslog strace unzip zip gzip tar command-not-found screen bc fzf ffmpeg jq needrestart unattended-upgrades cloc \
     libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev libncursesw5-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev 
 
 # System: Install the latest version of fastfetch
