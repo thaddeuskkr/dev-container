@@ -10,6 +10,7 @@ RUN apt-get install -y \
     sudo nano wget curl lsof htop git ack locales unzip zip gzip tar bc fzf jq openssh-server \
     ca-certificates build-essential command-not-found screen cloc needrestart unattended-upgrades
 
+ARG TARGETPLATFORM
 RUN echo $TARGETPLATFORM
 
 # Install Visual Studio Code CLI
