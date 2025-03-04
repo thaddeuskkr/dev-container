@@ -8,6 +8,5 @@ cp -R /volumes/.gnupg/* /home/ubuntu/.gnupg
 cp /volumes/.gitconfig /home/ubuntu
 chown -R ubuntu:ubuntu /home/ubuntu/.gnupg
 chown -R ubuntu:ubuntu /home/ubuntu/.gitconfig
-sudo systemctl enable ssh.service
-sudo systemctl start ssh.service
+/sbin/service sshd start
 sudo -u ubuntu bash -c 'code tunnel --accept-server-license-terms --server-data-dir /data/server --extensions-dir /data/extensions --cli-data-dir /data/cli'
