@@ -7,8 +7,10 @@ RUN apt-get install -y unminimize
 RUN yes | unminimize
 
 RUN apt-get install -y \
-    sudo nano wget curl lsof htop git ack locales unzip zip gzip tar bc fzf jq openssh-server \
-    ca-certificates build-essential command-not-found screen cloc needrestart unattended-upgrades
+    sudo nano wget curl lsof htop git ack locales unzip zip gzip tar bc fzf jq openssh-server tzdata \
+    ca-certificates build-essential command-not-found screen cloc needrestart unattended-upgrades \
+    zlib1g-dev pkg-config libz3-dev libxml2-dev libstdc++-13-dev libsqlite3-0 libpython3-dev libncurses-dev \
+    libgcc-13-dev libedit2 libcurl4-openssl-dev libc6-dev gnupg2 binutils
 
 ARG TARGETPLATFORM
 
