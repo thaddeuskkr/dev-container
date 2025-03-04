@@ -24,8 +24,8 @@ jobs:
   build-multiarch:
     strategy:
       matrix:
-        os: [ubuntu-24.04, ubuntu-24.04-arm]
-    runs-on: ${{ matrix.os }}
+        platforms: [linux/arm64, linux/amd64]
+    runs-on: ${{ matrix.platforms == 'linux/arm64' && 'ubuntu-24.04-arm' || 'ubuntu-24.04' }}
     permissions:
       actions: write
       contents: read
@@ -87,7 +87,7 @@ jobs:
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          platforms: ${{ endsWith(matrix.os, '-arm') && 'linux/arm64' || 'linux/amd64' }}
+          platforms: ${{ matrix.platforms }}
 
       - name: Sign the published Docker image
         if: ${{ github.event_name != 'pull_request' }}
