@@ -1,0 +1,78 @@
+FROM ubuntu:rolling
+
+USER root
+
+RUN apt-get update && apt-get upgrade -y
+RUN apt-get install -y unminimize 
+RUN yes | unminimize
+
+RUN apt-get install -y \
+    sudo nano wget curl lsof htop git ack locales unzip zip gzip tar bc fzf jq openssh-server \
+    ca-certificates build-essential command-not-found screen cloc needrestart unattended-upgrades
+
+RUN echo $TARGETPLATFORM
+
+# Install fastfetch
+RUN if [ "$TARGETPLATFORM" = "linux/arm64" ]; then \
+    curl -sL https://github.com/fastfetch-cli/fastfetch/releases/download/$(curl -s https://api.github.com/repos/fastfetch-cli/fastfetch/releases/latest | jq -r '.tag_name')/fastfetch-linux-aarch64.deb -o /tmp/fastfetch.deb; \
+    elif [ "$TARGETPLATFORM" = "linux/amd64" ]; then \
+    curl -sL https://github.com/fastfetch-cli/fastfetch/releases/download/$(curl -s https://api.github.com/repos/fastfetch-cli/fastfetch/releases/latest | jq -r '.tag_name')/fastfetch-linux-amd64.deb -o /tmp/fastfetch.deb; \
+    fi && \
+    dpkg -i /tmp/fastfetch.deb && \
+    rm -rf /tmp/fastfetch.deb
+
+# Install Visual Studio Code CLI
+RUN if [ "$TARGETPLATFORM" = "linux/arm64" ]; then \
+    curl -sL "https://code.visualstudio.com/sha/download?build=stable&os=cli-alpine-arm64" -o /tmp/vscode-cli.tar.gz; \
+    elif [ "$TARGETPLATFORM" = "linux/amd64" ]; then \
+    curl -sL "https://code.visualstudio.com/sha/download?build=stable&os=cli-alpine-x64" -o /tmp/vscode-cli.tar.gz; \
+    fi && \
+    tar -xf /tmp/vscode-cli.tar.gz -C /usr/bin && \
+    rm -rf /tmp/vscode-cli.tar.gz && \
+    mkdir -p /data/cli && \
+    mkdir -p /data/server && \
+    mkdir -p /data/extensions
+
+# Install Docker Engine and GitHub CLI
+RUN install -m 0755 -d /etc/apt/keyrings && \
+    curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc && \
+    chmod a+r /etc/apt/keyrings/docker.asc && \
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
+    tee /etc/apt/sources.list.d/docker.list > /dev/null
+RUN curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg && \
+    chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg && \
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+RUN apt-get update && apt-get install -y gh docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+
+# Configure permissions
+RUN usermod -aG sudo ubuntu && \
+    echo 'ubuntu ALL=(ALL) NOPASSWD: ALL' | EDITOR='tee -a' visudo
+
+# Configure locales
+RUN locale-gen --purge en_US.UTF-8 && \
+update-locale LANG=en_US.UTF-8
+
+# Add workspaces directory
+RUN mkdir /workspaces && \
+    chown -R ubuntu:ubuntu /workspaces
+
+USER ubuntu
+
+# Install nvm and the latest node LTS
+RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/$(curl -s https://api.github.com/repos/nvm-sh/nvm/releases/latest | jq -r '.tag_name')/install.sh | bash
+RUN export NVM_DIR="$HOME/.nvm" && \
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" && \
+    [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion" && \
+    nvm install --lts
+
+# Install Bun
+RUN curl -fsSL https://bun.sh/install | bash
+
+# Install uv
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+
+USER root
+
+COPY entrypoint.sh /entrypoint.sh
+
+ENTRYPOINT [ "/entrypoint.sh" ]
