@@ -8,7 +8,7 @@ echo "ubuntu:$PASSWORD" | chpasswd
 mkdir -p /home/ubuntu/.ssh
 mkdir -p /home/ubuntu/.gnupg
 if [ -n "$KEYS" ]; then
-  echo "$KEYS\n" >> /home/ubuntu/.ssh/authorized_keys
+  echo "$KEYS\n" > /home/ubuntu/.ssh/authorized_keys
 fi
 cp -R /volumes/.gnupg/* /home/ubuntu/.gnupg
 cp /volumes/.gitconfig /home/ubuntu
