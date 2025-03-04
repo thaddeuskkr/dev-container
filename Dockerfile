@@ -65,6 +65,7 @@ RUN SWIFT_VERSION="$(curl -s https://www.swift.org/api/v1/install/releases.json 
     if [ "$TARGETPLATFORM" = "linux/arm64" ]; then \
     curl -sL https://download.swift.org/swift-$SWIFT_VERSION-release/ubuntu2404-aarch64/swift-$SWIFT_VERSION-RELEASE/swift-$SWIFT_VERSION-RELEASE-ubuntu24.04-aarch64.tar.gz -o /tmp/swift.tar.gz && \
     tar -xzf /tmp/swift.tar.gz -C /tmp && \
+    mkdir -p /home/ubuntu/.local && \
     mv /tmp/swift-$SWIFT_VERSION-RELEASE-ubuntu24.04-aarch64 ~/.local/swift; \
     elif [ "$TARGETPLATFORM" = "linux/amd64" ]; then \
     curl -sL https://download.swift.org/swift-$SWIFT_VERSION-release/ubuntu2404/swift-$SWIFT_VERSION-RELEASE/swift-$SWIFT_VERSION-RELEASE-ubuntu24.04.tar.gz -o /tmp/swift.tar.gz && \
