@@ -70,7 +70,8 @@ RUN SWIFT_VERSION="$(curl -s https://www.swift.org/api/v1/install/releases.json 
     mkdir -p /home/ubuntu/.local && \
     mv /tmp/swift-$SWIFT_VERSION-RELEASE-ubuntu24.04 /home/ubuntu/.local/swift; \
     fi && \
-    rm -rf /tmp/swift.tar.gz
+    rm -rf /tmp/swift.tar.gz && \
+    export PATH=/home/ubuntu/.local/swift/usr/bin:"${PATH}"
 
 # Install nvm and the latest node LTS
 RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/$(curl -s https://api.github.com/repos/nvm-sh/nvm/releases/latest | jq -r '.tag_name')/install.sh | bash
