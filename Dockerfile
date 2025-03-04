@@ -11,7 +11,6 @@ RUN apt-get install -y \
     ca-certificates build-essential command-not-found screen cloc needrestart unattended-upgrades
 
 ARG TARGETPLATFORM
-RUN echo $TARGETPLATFORM
 
 # Install Visual Studio Code CLI
 RUN if [ "$TARGETPLATFORM" = "linux/arm64" ]; then \
