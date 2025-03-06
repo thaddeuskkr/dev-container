@@ -46,7 +46,7 @@ else
   echo "** Added the 'ubuntu' user to group $DOCKER_GROUP."
 fi
 usermod -aG docker_host ubuntu
-if [ $(cat /proc/cpuinfo | grep avx2) = '' ]; then
+if [ "$(cat /proc/cpuinfo | grep avx2)" = "" ]; then
   echo "** AVX2 instruction set support not found. You may have to reinstall some tools / applications for full functionality."
 fi
 echo "** Starting SSH server and Visual Studio Code tunnel."
