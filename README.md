@@ -8,6 +8,7 @@ An Ubuntu container running an SSH server, along with a Visual Studio Code Tunne
 - Latest Ubuntu rolling release (unminimized)
 - Built for multiple architectures
 - Daily scheduled builds
+- Slightly configurable
 
 ## Preinstalled Tools
 
