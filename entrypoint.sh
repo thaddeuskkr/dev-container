@@ -8,20 +8,20 @@ else
 fi
 if [ -z "$SSH_PASSWORD_AUTH" ] || [ "$(echo "$SSH_PASSWORD_AUTH" | tr '[:upper:]' '[:lower:]')" = "false" ]; then
   sed -E -i 's|^#?(PasswordAuthentication)\s.*|\1 no|' /etc/ssh/sshd_config
-  if ! grep '^PasswordAuthentication\s' /etc/ssh/sshd_config; then echo 'PasswordAuthentication no' | tee -a /etc/ssh/sshd_config > /dev/null; fi
+  if ! grep -q '^PasswordAuthentication\s' /etc/ssh/sshd_config; then echo 'PasswordAuthentication no' | tee -a /etc/ssh/sshd_config > /dev/null; fi
   echo "** Disabled SSH password authentication."
 else
   sed -E -i 's|^#?(PasswordAuthentication)\s.*|\1 yes|' /etc/ssh/sshd_config
-  if ! grep '^PasswordAuthentication\s' /etc/ssh/sshd_config; then echo 'PasswordAuthentication yes' | tee -a /etc/ssh/sshd_config > /dev/null; fi
+  if ! grep -q '^PasswordAuthentication\s' /etc/ssh/sshd_config; then echo 'PasswordAuthentication yes' | tee -a /etc/ssh/sshd_config > /dev/null; fi
   echo "** Leaving SSH password authentication enabled. Beware, this could be a security risk."
 fi
 if [ -z "$SSH_ROOT_LOGIN" ] || [ "$(echo "$SSH_ROOT_LOGIN" | tr '[:upper:]' '[:lower:]')" = "false" ]; then
   sed -E -i 's|^#?(PermitRootLogin)\s.*|\1 no|' /etc/ssh/sshd_config
-  if ! grep '^PermitRootLogin\s' /etc/ssh/sshd_config; then echo 'PermitRootLogin no' | tee -a /etc/ssh/sshd_config > /dev/null; fi
+  if ! grep -q '^PermitRootLogin\s' /etc/ssh/sshd_config; then echo 'PermitRootLogin no' | tee -a /etc/ssh/sshd_config > /dev/null; fi
   echo "** Disabled SSH root login."
 else
   sed -E -i 's|^#?(PermitRootLogin)\s.*|\1 yes|' /etc/ssh/sshd_config
-  if ! grep '^PermitRootLogin\s' /etc/ssh/sshd_config; then echo 'PermitRootLogin yes' | tee -a /etc/ssh/sshd_config > /dev/null; fi
+  if ! grep -q '^PermitRootLogin\s' /etc/ssh/sshd_config; then echo 'PermitRootLogin yes' | tee -a /etc/ssh/sshd_config > /dev/null; fi
   echo "** Leaving SSH root login enabled. Beware, this could be a security risk."
 fi
 echo "root:$PASSWORD" | chpasswd
