@@ -13,6 +13,13 @@ if [ -z "$SSH_PASSWORD_AUTH" ] || [ "$(echo "$SSH_PASSWORD_AUTH" | tr '[:upper:]
 else
   echo "** Leaving SSH password authentication enabled. Beware, this could be a security risk."
 fi
+if [ -z "$SSH_ROOT_LOGIN" ] || [ "$(echo "$SSH_ROOT_LOGIN" | tr '[:upper:]' '[:lower:]')" = "false" ]; then
+  sed -E -i 's|^#?(PermitRootLogin)\s.*|\1 no|' /etc/ssh/sshd_config
+  if ! grep '^PermitRootLogin\s' /etc/ssh/sshd_config; then echo 'PermitRootLogin no' | tee -a /etc/ssh/sshd_config > /dev/null; fi
+  echo "** Disabled SSH root login."
+else
+  echo "** Leaving SSH root login enabled. Beware, this could be a security risk."
+fi
 echo "root:$PASSWORD" | chpasswd
 echo "ubuntu:$PASSWORD" | chpasswd
 mkdir -p /home/ubuntu/.ssh
