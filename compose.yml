@@ -8,6 +8,8 @@ services:
       # PASSWORD: YOUR_PASSWORD # optional: specify password for user and root account (default: random)
       # DOCKER_GROUP: YOUR DOCKER GROUP # optional: specify docker group to add user to (host, e.g. 999)
       # KEYS: YOUR_SSH_KEYS # optional: specify ssh keys to add to user account (cannot be linked to a file)
+      SSH_PASSWORD_AUTH: false # optional: allow password authentication for ssh (default: false)
+      SSH_ROOT_LOGIN: false # optional: allow root login via SSH (default: false)
     ports:
       - 2222:22
     volumes:
@@ -16,7 +18,7 @@ services:
       - ./workspaces:/workspaces
       - ./data/:/data
       - /var/run/docker.sock:/var/run/docker.sock
-      - home:/home/ubuntu
+      - home:/home/ubuntu # note: using a volume is recommended for the home directory so we don't have to deal with permissions
 
 volumes:
   home:

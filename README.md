@@ -14,6 +14,7 @@ An Ubuntu container running an SSH server, along with a Visual Studio Code Tunne
 - [Visual Studio Code CLI](https://code.visualstudio.com/docs/editor/command-line)
 - [Docker Engine](https://docs.docker.com/engine/)
 - [GitHub CLI](https://cli.github.com/)
+- [Swift](https://www.swift.org/) (latest)
 - [Bun](https://bun.sh/)
 - [Node Version Manager (nvm)](https://github.com/nvm-sh/nvm) / [Node.js](https://nodejs.org/)
 - [`uv`](https://github.com/astral-sh/uv)
@@ -51,6 +52,8 @@ docker run -d \
 -e PASSWORD="YOUR_PASSWORD" \
 -e DOCKER_GROUP="$(getent group docker | cut -d: -f3)" \
 -e KEYS="$(cat ~/.ssh/authorized_keys)" \
+-e SSH_PASSWORD_AUTH="false" \
+-e SSH_ROOT_LOGIN="false" \
 -p 2222:22 \
 -v ~/.gnupg:/volumes/.gnupg:ro \
 -v ~/.gitconfig:/volumes/.gitconfig:ro \
