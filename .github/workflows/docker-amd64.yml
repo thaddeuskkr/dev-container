@@ -1,4 +1,4 @@
-name: Docker
+name: Docker Build - amd64
 
 on:
   schedule:
@@ -21,7 +21,7 @@ env:
   IMAGE_NAME: thaddeuskkr/devc
 
 jobs:
-  build-multiarch:
+  build-amd64:
     runs-on: ubuntu-latest
     permissions:
       actions: write
@@ -52,9 +52,6 @@ jobs:
       - name: Install cosign
         if: github.event_name != 'pull_request'
         uses: sigstore/cosign-installer@v3
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
       
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -77,7 +74,8 @@ jobs:
             type=ref,event=pr
             type=sha,format=short,prefix=,suffix=
             type=schedule,pattern={{date 'YYYYMMDD'}}
-            type=raw,value=latest,enable={{is_default_branch}}
+            type=raw,value=latest
+            type=raw,value=amd64
 
       - name: Build and push Docker image
         id: build-and-push
@@ -87,7 +85,7 @@ jobs:
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          platforms: ${{ github.event_name != 'pull_request' && 'linux/amd64,linux/arm64' || 'linux/amd64' }}
+          platforms: linux/amd64
 
       - name: Sign the published Docker image
         if: ${{ github.event_name != 'pull_request' }}
