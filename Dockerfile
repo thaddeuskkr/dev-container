@@ -89,6 +89,9 @@ RUN export NVM_DIR="$HOME/.nvm" && \
 # Install Bun
 RUN curl -fsSL https://bun.sh/install | bash
 
+# Install Deno
+RUN curl -fsSL https://deno.land/install.sh | sh -s -- -y
+
 # Install uv
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 

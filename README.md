@@ -17,6 +17,7 @@ An Ubuntu container running an SSH server, along with a Visual Studio Code Tunne
 - [GitHub CLI](https://cli.github.com/)
 - [Swift](https://www.swift.org/) (latest)
 - [Bun](https://bun.sh/)
+- [Deno](https://deno.com)
 - [Node Version Manager (nvm)](https://github.com/nvm-sh/nvm) / [Node.js](https://nodejs.org/)
 - [`uv`](https://github.com/astral-sh/uv)
 - [`fastfetch`](https://github.com/fastfetch-cli/fastfetch)
