@@ -2,7 +2,7 @@ services:
   dev_container:
     container_name: dev_container
     hostname: dev
-    image: ghcr.io/thaddeuskkr/devc:main
+    image: ghcr.io/thaddeuskkr/devc
     restart: unless-stopped
     environment:
       # PASSWORD: YOUR_PASSWORD # optional: specify password for user and root account (default: random)

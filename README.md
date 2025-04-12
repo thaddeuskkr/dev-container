@@ -1,6 +1,6 @@
 # Development Container
 
-An Ubuntu container running an SSH server, along with a Visual Studio Code Tunnel server for all your remote development needs.
+An Ubuntu container running an SSH server, along with a Visual Studio Code Tunnel for all your remote development needs. Comes with multiple [preinstalled tools](#preinstalled-tools) to make your life easier.
 
 ## Features
 
@@ -63,7 +63,7 @@ docker run -d \
 -v ./data/:/data \
 -v home:/home/ubuntu \
 -v /var/run/docker.sock:/var/run/docker.sock \
-ghcr.io/thaddeuskkr/devc:main
+ghcr.io/thaddeuskkr/devc
 ```
 
 The Docker `run` command above tries to replicate the behaviour from the Docker Compose file - there might be some discrepancies.
