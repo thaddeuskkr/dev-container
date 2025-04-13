@@ -55,7 +55,7 @@ RUN usermod -aG sudo ubuntu && \
 
 # Configure locales
 RUN locale-gen --purge en_US.UTF-8 && \
-update-locale LANG=en_US.UTF-8
+    update-locale LANG=en_US.UTF-8
 
 # Add workspaces directory
 RUN mkdir /workspaces && \
