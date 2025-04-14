@@ -51,7 +51,7 @@ if [ "$(cat /proc/cpuinfo | grep avx2)" = "" ]; then
 fi
 echo "** Starting SSH server and Visual Studio Code tunnel."
 TUNNEL_CMD="code tunnel --accept-server-license-terms --server-data-dir /data/server --extensions-dir /data/extensions --cli-data-dir /data/cli"
-if [ "$CODE_TUNNEL_VERBOSE" = "true" ]; then
+if [ "$(echo "$CODE_TUNNEL_VERBOSE" | tr '[:upper:]' '[:lower:]')" = "true" ]; then
   TUNNEL_CMD="$TUNNEL_CMD --verbose"
   echo "** Verbose logging enabled for Visual Studio Code tunnel."
 fi
