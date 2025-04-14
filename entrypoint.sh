@@ -50,4 +50,9 @@ if [ "$(cat /proc/cpuinfo | grep avx2)" = "" ]; then
   echo "** AVX2 instruction set support not found. You may have to reinstall some tools / applications for full functionality."
 fi
 echo "** Starting SSH server and Visual Studio Code tunnel."
-/usr/sbin/sshd -D & sudo -u ubuntu bash -c 'code tunnel --accept-server-license-terms --server-data-dir /data/server --extensions-dir /data/extensions --cli-data-dir /data/cli'
+TUNNEL_CMD="code tunnel --accept-server-license-terms --server-data-dir /data/server --extensions-dir /data/extensions --cli-data-dir /data/cli"
+if [ "$CODE_TUNNEL_VERBOSE" = "true" ]; then
+  TUNNEL_CMD="$TUNNEL_CMD --verbose"
+  echo "** Verbose logging enabled for Visual Studio Code tunnel."
+fi
+/usr/sbin/sshd -D & sudo -u ubuntu bash -c "$TUNNEL_CMD"
