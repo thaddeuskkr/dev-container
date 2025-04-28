@@ -1,5 +1,7 @@
 # Development Container
 
+[![Workflow Status](https://github.com/thaddeuskkr/dev-container/actions/workflows/build.yml/badge.svg)](https://github.com/thaddeuskkr/dev-container/actions/workflows/build.yml)
+
 An Ubuntu container running an SSH server, along with a Visual Studio Code Tunnel for all your remote development needs. Comes with multiple [preinstalled tools](#preinstalled-tools) to make your life easier.
 
 ## Features
