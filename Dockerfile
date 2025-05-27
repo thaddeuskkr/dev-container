@@ -17,7 +17,6 @@ RUN apt-get install -y \
 
 # Define target platform
 ARG TARGETPLATFORM
-ARG SHELL=/bin/bash
 
 # Install Visual Studio Code CLI
 RUN if [ "$TARGETPLATFORM" = "linux/arm64" ]; then \
@@ -82,20 +81,14 @@ RUN SWIFT_VERSION="$(curl -s https://www.swift.org/api/v1/install/releases.json 
     echo 'export PATH=/home/ubuntu/.local/swift/usr/bin:"${PATH}"' >> ~/.bashrc
 
 # Install nvm and the latest node LTS
-# RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/$(curl -s https://api.github.com/repos/nvm-sh/nvm/releases/latest | jq -r '.tag_name')/install.sh | bash
-# RUN export NVM_DIR="$HOME/.nvm" && \
-#     [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" && \
-#     [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion" && \
-#     nvm install --lts
+RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/$(curl -s https://api.github.com/repos/nvm-sh/nvm/releases/latest | jq -r '.tag_name')/install.sh | bash
+RUN export NVM_DIR="$HOME/.nvm" && \
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" && \
+    [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion" && \
+    nvm install --lts
 
-# Install pnpm and latest node LTS
-RUN curl -fsSL https://get.pnpm.io/install.sh | sh - && \
-    export PNPM_HOME="/home/ubuntu/.local/share/pnpm" && \
-    case ":$PATH:" in \
-        *":$PNPM_HOME:"*) ;; \
-        *) export PATH="$PNPM_HOME:$PATH" ;; \
-    esac && \
-    pnpm env use --global lts
+# Install pnpm
+RUN curl -fsSL https://get.pnpm.io/install.sh | sh -
 
 # Install Bun
 RUN curl -fsSL https://bun.sh/install | bash
