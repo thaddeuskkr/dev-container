@@ -90,7 +90,11 @@ RUN SWIFT_VERSION="$(curl -s https://www.swift.org/api/v1/install/releases.json 
 
 # Install pnpm and latest node LTS
 RUN curl -fsSL https://get.pnpm.io/install.sh | sh - && \
-    source /home/ubuntu/.bashrc && \
+    export PNPM_HOME="/home/ubuntu/.local/share/pnpm" && \
+    case ":$PATH:" in \
+        *":$PNPM_HOME:"*) ;; \
+        *) export PATH="$PNPM_HOME:$PATH" ;; \
+    esac && \
     pnpm env use --global lts
 
 # Install Bun
