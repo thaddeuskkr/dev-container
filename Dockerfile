@@ -81,11 +81,16 @@ RUN SWIFT_VERSION="$(curl -s https://www.swift.org/api/v1/install/releases.json 
     echo 'export PATH=/home/ubuntu/.local/swift/usr/bin:"${PATH}"' >> ~/.bashrc
 
 # Install nvm and the latest node LTS
-RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/$(curl -s https://api.github.com/repos/nvm-sh/nvm/releases/latest | jq -r '.tag_name')/install.sh | bash
-RUN export NVM_DIR="$HOME/.nvm" && \
-    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" && \
-    [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion" && \
-    nvm install --lts
+# RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/$(curl -s https://api.github.com/repos/nvm-sh/nvm/releases/latest | jq -r '.tag_name')/install.sh | bash
+# RUN export NVM_DIR="$HOME/.nvm" && \
+#     [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" && \
+#     [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion" && \
+#     nvm install --lts
+
+# Install pnpm and latest node LTS
+RUN curl -fsSL https://get.pnpm.io/install.sh | sh - && \
+    source /home/ubuntu/.bashrc && \
+    pnpm env use --global lts
 
 # Install Bun
 RUN curl -fsSL https://bun.sh/install | bash
