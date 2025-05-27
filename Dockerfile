@@ -17,7 +17,7 @@ RUN apt-get install -y \
 
 # Define target platform
 ARG TARGETPLATFORM
-ARG SHELL = /bin/bash
+ARG SHELL=/bin/bash
 
 # Install Visual Studio Code CLI
 RUN if [ "$TARGETPLATFORM" = "linux/arm64" ]; then \
