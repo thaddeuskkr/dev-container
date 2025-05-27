@@ -88,7 +88,7 @@ RUN export NVM_DIR="$HOME/.nvm" && \
     nvm install --lts
 
 # Install pnpm
-RUN curl -fsSL https://get.pnpm.io/install.sh | sh -
+RUN curl -fsSL https://get.pnpm.io/install.sh | SHELL=/bin/bash sh -
 
 # Install Bun
 RUN curl -fsSL https://bun.sh/install | bash
