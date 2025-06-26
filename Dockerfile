@@ -64,21 +64,21 @@ RUN mkdir /workspaces && \
 
 USER ubuntu
 
-# Install Swift
-RUN SWIFT_VERSION="$(curl -s https://www.swift.org/api/v1/install/releases.json | jq -r '.[-1].name')" && \
-    if [ "$TARGETPLATFORM" = "linux/arm64" ]; then \
-    curl -sL https://download.swift.org/swift-$SWIFT_VERSION-release/ubuntu2404-aarch64/swift-$SWIFT_VERSION-RELEASE/swift-$SWIFT_VERSION-RELEASE-ubuntu24.04-aarch64.tar.gz -o /tmp/swift.tar.gz && \
-    tar -xzf /tmp/swift.tar.gz -C /tmp && \
-    mkdir -p /home/ubuntu/.local && \
-    mv /tmp/swift-$SWIFT_VERSION-RELEASE-ubuntu24.04-aarch64 ~/.local/swift; \
-    elif [ "$TARGETPLATFORM" = "linux/amd64" ]; then \
-    curl -sL https://download.swift.org/swift-$SWIFT_VERSION-release/ubuntu2404/swift-$SWIFT_VERSION-RELEASE/swift-$SWIFT_VERSION-RELEASE-ubuntu24.04.tar.gz -o /tmp/swift.tar.gz && \
-    tar -xzf /tmp/swift.tar.gz -C /tmp && \
-    mkdir -p /home/ubuntu/.local && \
-    mv /tmp/swift-$SWIFT_VERSION-RELEASE-ubuntu24.04 /home/ubuntu/.local/swift; \
-    fi && \
-    rm -rf /tmp/swift.tar.gz && \
-    echo 'export PATH=/home/ubuntu/.local/swift/usr/bin:"${PATH}"' >> ~/.bashrc
+# Install Swift (i'm not currently using this, so i'm keeping it here for reference but commenting it out)
+# RUN SWIFT_VERSION="$(curl -s https://www.swift.org/api/v1/install/releases.json | jq -r '.[-1].name')" && \
+#     if [ "$TARGETPLATFORM" = "linux/arm64" ]; then \
+#     curl -sL https://download.swift.org/swift-$SWIFT_VERSION-release/ubuntu2404-aarch64/swift-$SWIFT_VERSION-RELEASE/swift-$SWIFT_VERSION-RELEASE-ubuntu24.04-aarch64.tar.gz -o /tmp/swift.tar.gz && \
+#     tar -xzf /tmp/swift.tar.gz -C /tmp && \
+#     mkdir -p /home/ubuntu/.local && \
+#     mv /tmp/swift-$SWIFT_VERSION-RELEASE-ubuntu24.04-aarch64 ~/.local/swift; \
+#     elif [ "$TARGETPLATFORM" = "linux/amd64" ]; then \
+#     curl -sL https://download.swift.org/swift-$SWIFT_VERSION-release/ubuntu2404/swift-$SWIFT_VERSION-RELEASE/swift-$SWIFT_VERSION-RELEASE-ubuntu24.04.tar.gz -o /tmp/swift.tar.gz && \
+#     tar -xzf /tmp/swift.tar.gz -C /tmp && \
+#     mkdir -p /home/ubuntu/.local && \
+#     mv /tmp/swift-$SWIFT_VERSION-RELEASE-ubuntu24.04 /home/ubuntu/.local/swift; \
+#     fi && \
+#     rm -rf /tmp/swift.tar.gz && \
+#     echo 'export PATH=/home/ubuntu/.local/swift/usr/bin:"${PATH}"' >> ~/.bashrc
 
 # Install nvm and the latest node LTS
 RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/$(curl -s https://api.github.com/repos/nvm-sh/nvm/releases/latest | jq -r '.tag_name')/install.sh | bash
