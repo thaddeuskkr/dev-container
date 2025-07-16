@@ -32,12 +32,12 @@ RUN if [ "$TARGETPLATFORM" = "linux/arm64" ]; then \
 
 # Install fastfetch
 RUN if [ "$TARGETPLATFORM" = "linux/arm64" ]; then \
-    curl -sL https://github.com/fastfetch-cli/fastfetch/releases/download/$(curl -s https://api.github.com/repos/fastfetch-cli/fastfetch/releases/latest | jq -r '.tag_name')/fastfetch-linux-aarch64.deb -o /tmp/fastfetch.deb; \
+    curl -sL "https://github.com/fastfetch-cli/fastfetch/releases/download/$(curl -s https://api.github.com/repos/fastfetch-cli/fastfetch/releases/latest | jq -r '.tag_name')/fastfetch-linux-aarch64.deb" -o /tmp/fastfetch.deb; \
+    dpkg -i /tmp/fastfetch.deb && rm -rf /tmp/fastfetch.deb; \
     elif [ "$TARGETPLATFORM" = "linux/amd64" ]; then \
-    curl -sL https://github.com/fastfetch-cli/fastfetch/releases/download/$(curl -s https://api.github.com/repos/fastfetch-cli/fastfetch/releases/latest | jq -r '.tag_name')/fastfetch-linux-amd64.deb -o /tmp/fastfetch.deb; \
-    fi && \
-    dpkg -i /tmp/fastfetch.deb && \
-    rm -rf /tmp/fastfetch.deb
+    curl -sL "https://github.com/fastfetch-cli/fastfetch/releases/download/$(curl -s https://api.github.com/repos/fastfetch-cli/fastfetch/releases/latest | jq -r '.tag_name')/fastfetch-linux-amd64.deb" -o /tmp/fastfetch.deb; \
+    dpkg -i /tmp/fastfetch.deb && rm -rf /tmp/fastfetch.deb; \
+    fi
 
 # Install Docker Engine and GitHub CLI
 RUN install -m 0755 -d /etc/apt/keyrings && \
