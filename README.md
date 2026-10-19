@@ -7,7 +7,7 @@ An Ubuntu container running an SSH server, along with a Visual Studio Code Tunne
 ## Features
 
 - Passthrough of SSH and GPG keys, along with Git configurations
-- Latest Ubuntu rolling release (unminimized)
+- Latest Ubuntu LTS release (unminimized)
 - Built for multiple architectures
 - Daily scheduled builds
 - Slightly configurable
@@ -17,10 +17,9 @@ An Ubuntu container running an SSH server, along with a Visual Studio Code Tunne
 - [Visual Studio Code CLI](https://code.visualstudio.com/docs/editor/command-line)
 - [Docker Engine](https://docs.docker.com/engine/)
 - [GitHub CLI](https://cli.github.com/)
-- [Swift](https://www.swift.org/) (latest)
 - [Bun](https://bun.sh/)
 - [Deno](https://deno.com)
-- [Node Version Manager (nvm)](https://github.com/nvm-sh/nvm) / [Node.js](https://nodejs.org/)
+- [Node Version Manager (nvm)](https://github.com/nvm-sh/nvm)
 - [`uv`](https://github.com/astral-sh/uv)
 - [`fastfetch`](https://github.com/fastfetch-cli/fastfetch)
 - [`cloc`](https://github.com/AlDanial/cloc)
@@ -69,3 +68,28 @@ ghcr.io/thaddeuskkr/devc
 ```
 
 The Docker `run` command above tries to replicate the behaviour from the Docker Compose file - there might be some discrepancies.
+
+## Updating Ubuntu without losing development data
+
+The image uses `ubuntu:latest`, which follows the [latest Ubuntu LTS release](https://hub.docker.com/_/ubuntu). Building it with a freshly pulled base image picks up the LTS release currently referenced by that tag. To follow every Ubuntu release, including interim releases, use `ubuntu:rolling` instead. The published image is built daily; once a build with the newer base succeeds, update your deployment from the same Compose directory and with the same Compose project name:
+
+```sh
+docker compose pull dev_container
+docker compose up -d dev_container
+```
+
+Compose replaces the container when its image changes and reuses its existing mounts. The included configuration already preserves:
+
+| Container path | Storage | Contents |
+| --- | --- | --- |
+| `/home/ubuntu` | Named volume `home` | User settings, SSH keys, nvm versions, and tools installed in the home directory |
+| `/workspaces` | Host directory `./workspaces` | Projects and working files |
+| `/data` | Host directory `./data` | VS Code tunnel state, server data, and extensions |
+
+Back up these locations before a release change. Keep the existing Compose project name so Compose selects the same home volume, and keep the bind mounts pointed at the same host directories. Do not use `docker compose down -v` when updating: it deletes the Compose-managed home volume.
+
+Files elsewhere in the container, including packages installed manually with APT, changes under `/etc`, and files under `/root`, are not preserved when the container is replaced. Add system packages and configuration to the Dockerfile or entrypoint so they can be recreated. Upgrade by rebuilding/replacing the image rather than running an Ubuntu release upgrade inside the running container. Home-installed tools with native binaries may need rebuilding or reinstalling for the newer Ubuntu release.
+
+An existing home volume also hides the home directory supplied by a newer image. Image updates therefore do not refresh tools already stored there, and removing the automatic Node.js installation from the Dockerfile does not uninstall versions already in `~/.nvm`. Manage those versions with nvm inside the container.
+
+Docker documents these persistence and mount behaviours in its [volume guide](https://docs.docker.com/engine/storage/volumes/).

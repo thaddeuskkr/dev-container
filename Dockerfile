@@ -1,4 +1,4 @@
-FROM ubuntu:rolling
+FROM ubuntu:latest
 
 USER root
 
@@ -7,13 +7,11 @@ RUN apt-get update && apt-get upgrade -y
 RUN apt-get install -y unminimize 
 RUN yes | unminimize
 
-# Install packages and dependencies
+# Install general development tools
 RUN apt-get install -y \
     sudo nano wget curl lsof htop git ack locales unzip zip gzip tar bc fzf jq openssh-server tzdata \
     ca-certificates build-essential command-not-found screen cloc needrestart unattended-upgrades \
-    zlib1g-dev pkg-config libz3-dev libxml2-dev libstdc++-13-dev libsqlite3-0 libpython3-dev libncurses-dev \
-    libgcc-13-dev libedit2 libcurl4-openssl-dev libc6-dev gnupg2 binutils \
-    dotnet-sdk-9.0 neovim
+    pkg-config gnupg2 neovim
 
 # Define target platform
 ARG TARGETPLATFORM
@@ -80,12 +78,8 @@ USER ubuntu
 #     rm -rf /tmp/swift.tar.gz && \
 #     echo 'export PATH=/home/ubuntu/.local/swift/usr/bin:"${PATH}"' >> ~/.bashrc
 
-# Install nvm and the latest node LTS
+# Install nvm
 RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/$(curl -s https://api.github.com/repos/nvm-sh/nvm/releases/latest | jq -r '.tag_name')/install.sh | bash
-RUN export NVM_DIR="$HOME/.nvm" && \
-    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" && \
-    [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion" && \
-    nvm install --lts
 
 # Install pnpm
 RUN curl -fsSL https://get.pnpm.io/install.sh | SHELL=/bin/bash sh -
