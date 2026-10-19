@@ -1,22 +1,30 @@
-target "docker-metadata-action" {}
+variable "IMAGE" {
+  default = "thadkkr/vm"
+}
+
+# Local/manual builds get dated tags too; override BUILD_DATE when needed.
+variable "BUILD_DATE" {
+  default = formattimestamp("YYYYMMDD", timestamp())
+}
 
 group "default" {
-  targets = ["image-local"]
+  targets = ["dev", "sandbox"]
 }
 
-target "image" {
-  inherits = ["docker-metadata-action"]
+target "_common" {
+  context = "."
+  dockerfile = "Dockerfile"
+  platforms = ["linux/amd64", "linux/arm64"]
 }
 
-target "image-local" {
-  inherits = ["image"]
-  output = ["type=docker"]
+target "dev" {
+  inherits = ["_common"]
+  target = "dev"
+  tags = ["${IMAGE}:dev", "${IMAGE}:dev-${BUILD_DATE}"]
 }
 
-target "image-all" {
-  inherits = ["image"]
-  platforms = [
-    "linux/amd64",
-    "linux/arm64"
-  ]
+target "sandbox" {
+  inherits = ["_common"]
+  target = "sandbox"
+  tags = ["${IMAGE}:sandbox", "${IMAGE}:sandbox-${BUILD_DATE}"]
 }

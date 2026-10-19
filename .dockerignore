@@ -1,0 +1,4 @@
+# Only the Dockerfile and dev entrypoint are required in the build context.
+**
+!Dockerfile
+!entrypoint.sh

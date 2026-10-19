@@ -1,0 +1,15 @@
+# Use this file on its own; do not merge it with the persistent dev service.
+# docker compose -f compose.sandbox.yml run --rm sandbox
+services:
+  sandbox:
+    image: ghcr.io/thaddeuskkr/vm:sandbox
+    hostname: sandbox
+    init: true
+    stdin_open: true
+    tty: true
+    working_dir: /workspaces
+    pids_limit: 512
+    mem_limit: 4g
+    cpus: 2
+    # No bind mounts, named volumes, published ports, or Docker socket.
+    # sudo intentionally works so apt installs are possible inside the sandbox.

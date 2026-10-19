@@ -1,183 +1,203 @@
-name: Docker Build (multiarch)
+name: VM images (multiarch)
 
 on:
   push:
     paths:
-      - "Dockerfile"
-      - "entrypoint.sh"
-      - ".github/workflows/build.yml"
+      - Dockerfile
+      - entrypoint.sh
+      - docker-bake.hcl
+      - compose*.yml
+      - tests/**
+      - .dockerignore
+      - .github/workflows/build.yml
   pull_request:
   workflow_dispatch:
   schedule:
     - cron: "0 0 * * *"
 
+permissions:
+  contents: read
+
+# Serialize releases so an older run cannot overwrite newer moving tags.
+concurrency:
+  group: vm-images-${{ github.ref }}
+  cancel-in-progress: false
+
 env:
-  REGISTRY: ghcr.io
-  IMAGE_NAME: thaddeuskkr/devc
-  PLATFORM_PAIR: null
+  DOCKERHUB_IMAGE: docker.io/thadkkr/vm
+  GHCR_IMAGE: ghcr.io/thaddeuskkr/vm
 
 jobs:
   prepare:
     runs-on: ubuntu-latest
-    permissions:
-      actions: write
-      contents: read
-      packages: write
     outputs:
-      matrix: ${{ steps.platforms.outputs.matrix }}
+      date: ${{ steps.build.outputs.date }}
+      created: ${{ steps.build.outputs.created }}
+      publish: ${{ steps.build.outputs.publish }}
     steps:
-      - name: Clear cache
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const caches = await github.rest.actions.getActionsCacheList({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-            });
-            for (const cache of caches.data.actions_caches) {
-              github.rest.actions.deleteActionsCacheById({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                cache_id: cache.id,
-              })
-            }
-
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Create platforms matrix
-        id: platforms
+      - name: Choose one UTC build date for every variant and architecture
+        id: build
+        env:
+          PUBLISH: ${{ github.event_name != 'pull_request' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch) }}
         run: |
-          echo "matrix=$(docker buildx bake image-all --print | jq -cr '.target."image-all".platforms')" >> ${GITHUB_OUTPUT}
-
-      - name: Show platforms matrix
-        run: |
-          echo ${{ steps.platforms.outputs.matrix }}
-
-      - name: Extract Docker metadata
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-          tags: |
-            type=ref,event=branch
-            type=ref,event=pr
-            type=sha,format=short,prefix=,suffix=
-            type=schedule,pattern={{date 'YYYYMMDD'}}
-            type=raw,value=latest,enable={{is_default_branch}}
-
-      - name: Rename meta bake definition file
-        run: |
-          mv "${{ steps.meta.outputs.bake-file }}" "${{ runner.temp }}/bake-meta.json"
-
-      - name: Upload meta bake definition
-        uses: actions/upload-artifact@v4
-        with:
-          name: bake-meta
-          path: ${{ runner.temp }}/bake-meta.json
-          if-no-files-found: error
-          retention-days: 1
+          {
+            echo "date=$(date -u +%Y%m%d)"
+            echo "created=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            echo "publish=$PUBLISH"
+          } >> "$GITHUB_OUTPUT"
 
   build:
-    needs:
-      - prepare
+    needs: prepare
     strategy:
       fail-fast: false
       matrix:
-        platform: ${{ fromJson(needs.prepare.outputs.matrix) }}
-    runs-on: ${{ matrix.platform == 'linux/arm64' && 'ubuntu-24.04-arm' || 'ubuntu-latest' }}
+        variant: [dev, sandbox]
+        arch: [amd64, arm64]
+    runs-on: ${{ matrix.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-latest' }}
     permissions:
       contents: read
       packages: write
     steps:
-      - name: Prepare to build
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Validate Compose and Bake configuration
         run: |
-          platform=${{ matrix.platform }}
-          echo "PLATFORM_PAIR=${platform//\//-}" >> $GITHUB_ENV
+          docker compose -f compose.yml config --quiet
+          docker compose -f compose.sandbox.yml config --quiet
+          docker buildx bake --print
 
-      - name: Download meta bake definition
-        uses: actions/download-artifact@v4
+      - name: Build and load image for testing
+        uses: docker/build-push-action@v7
         with:
-          name: bake-meta
-          path: ${{ runner.temp }}
+          context: .
+          target: ${{ matrix.variant }}
+          platforms: linux/${{ matrix.arch }}
+          pull: true
+          # Refresh APT packages and upstream installers on daily builds.
+          no-cache: ${{ github.event_name == 'schedule' }}
+          load: true
+          tags: local/vm:${{ matrix.variant }}
+          provenance: false
+          labels: |
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.created=${{ needs.prepare.outputs.created }}
+            org.opencontainers.image.version=${{ matrix.variant }}-${{ needs.prepare.outputs.date }}
+          cache-from: type=gha,scope=${{ matrix.variant }}-${{ matrix.arch }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.variant }}-${{ matrix.arch }}
 
-      - name: Login to ${{ env.REGISTRY }}
-        uses: docker/login-action@v3
+      - name: Smoke-test image
+        run: bash tests/smoke.sh '${{ matrix.variant }}' 'local/vm:${{ matrix.variant }}'
+
+      - name: Login to Docker Hub
+        if: needs.prepare.outputs.publish == 'true'
+        uses: docker/login-action@v4
         with:
-          registry: ${{ env.REGISTRY }}
+          username: thadkkr
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Login to GHCR
+        if: needs.prepare.outputs.publish == 'true'
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Build Docker image
-        id: bake
-        uses: docker/bake-action@v6
+      # Reuses the tested build's local BuildKit cache; does not rerun installers.
+      - name: Push tested image by digest to both registries
+        if: needs.prepare.outputs.publish == 'true'
+        id: push
+        uses: docker/build-push-action@v7
         with:
-          files: |
-            ./docker-bake.hcl
-            cwd://${{ runner.temp }}/bake-meta.json
-          targets: image
-          set: |
-            *.tags=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-            *.platform=${{ matrix.platform }}
-            *.output=type=image,push-by-digest=true,name-canonical=true,push=true
+          context: .
+          target: ${{ matrix.variant }}
+          platforms: linux/${{ matrix.arch }}
+          tags: |
+            ${{ env.DOCKERHUB_IMAGE }}
+            ${{ env.GHCR_IMAGE }}
+          outputs: type=image,push-by-digest=true,name-canonical=true,push=true
+          provenance: false
+          labels: |
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.created=${{ needs.prepare.outputs.created }}
+            org.opencontainers.image.version=${{ matrix.variant }}-${{ needs.prepare.outputs.date }}
 
       - name: Export digest
+        if: needs.prepare.outputs.publish == 'true'
+        env:
+          DIGEST: ${{ steps.push.outputs.digest }}
         run: |
-          mkdir -p ${{ runner.temp }}/digests
-          digest="${{ fromJSON(steps.bake.outputs.metadata).image['containerimage.digest'] }}"
-          touch "${{ runner.temp }}/digests/${digest#sha256:}"
+          mkdir -p "$RUNNER_TEMP/digests"
+          touch "$RUNNER_TEMP/digests/${DIGEST#sha256:}"
 
       - name: Upload digest
+        if: needs.prepare.outputs.publish == 'true'
         uses: actions/upload-artifact@v4
         with:
-          name: digests-${{ env.PLATFORM_PAIR }}
+          name: digests-${{ matrix.variant }}-${{ matrix.arch }}
           path: ${{ runner.temp }}/digests/*
           if-no-files-found: error
           retention-days: 1
 
   merge:
+    needs: [prepare, build]
+    if: needs.prepare.outputs.publish == 'true'
     runs-on: ubuntu-latest
-    needs:
-      - build
+    strategy:
+      matrix:
+        variant: [dev, sandbox]
     permissions:
       contents: read
       packages: write
     steps:
-      - name: Download meta bake definition
+      - name: Download this variant's digests
         uses: actions/download-artifact@v4
         with:
-          name: bake-meta
-          path: ${{ runner.temp }}
-
-      - name: Download digests
-        uses: actions/download-artifact@v4
-        with:
+          pattern: digests-${{ matrix.variant }}-*
           path: ${{ runner.temp }}/digests
-          pattern: digests-*
           merge-multiple: true
 
-      - name: Login to ${{ env.REGISTRY }}
-        uses: docker/login-action@v3
+      - name: Login to Docker Hub
+        uses: docker/login-action@v4
         with:
-          registry: ${{ env.REGISTRY }}
+          username: thadkkr
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Login to GHCR
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
-      - name: Create manifest list and push
+      - name: Publish and verify multiarch tags in both registries
         working-directory: ${{ runner.temp }}/digests
+        env:
+          VARIANT: ${{ matrix.variant }}
+          BUILD_DATE: ${{ needs.prepare.outputs.date }}
+          REVISION: ${{ github.sha }}
         run: |
-          docker buildx imagetools create $(jq -cr '.target."docker-metadata-action".tags | map(select(startswith("${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}")) | "-t " + .) | join(" ")' ${{ runner.temp }}/bake-meta.json) \
-            $(printf '${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@sha256:%s ' *)
-
-      - name: Inspect image
-        run: |
-          docker buildx imagetools inspect ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:$(jq -r '.target."docker-metadata-action".args.DOCKER_META_VERSION' ${{ runner.temp }}/bake-meta.json)
+          digests=(*)
+          test "${#digests[@]}" -eq 2
+          for image in "$DOCKERHUB_IMAGE" "$GHCR_IMAGE"; do
+            sources=()
+            for digest in "${digests[@]}"; do
+              sources+=("$image@sha256:$digest")
+            done
+            docker buildx imagetools create \
+              --tag "$image:$VARIANT" \
+              --tag "$image:$VARIANT-$BUILD_DATE" \
+              --tag "$image:$VARIANT-sha-$REVISION" \
+              "${sources[@]}"
+            docker buildx imagetools inspect "$image:$VARIANT-$BUILD_DATE" --raw > manifest.json
+            jq -e '[.manifests[].platform | select(.os == "linux") | .architecture] | sort == ["amd64", "arm64"]' manifest.json
+          done

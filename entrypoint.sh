@@ -55,4 +55,6 @@ if [ "$(echo "$CODE_TUNNEL_VERBOSE" | tr '[:upper:]' '[:lower:]')" = "true" ]; t
   TUNNEL_CMD="$TUNNEL_CMD --verbose"
   echo "** Verbose logging enabled for Visual Studio Code tunnel."
 fi
+mkdir -p /run/sshd
+ssh-keygen -A
 /usr/sbin/sshd -D & sudo -u ubuntu bash -c "$TUNNEL_CMD"
