@@ -5,6 +5,7 @@ on:
     paths:
       - Dockerfile
       - entrypoint.sh
+      - sandbox-entrypoint.sh
       - docker-bake.hcl
       - compose*.yml
       - tests/**

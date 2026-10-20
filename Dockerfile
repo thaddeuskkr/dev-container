@@ -8,10 +8,10 @@ ARG DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get upgrade -y && \
     apt-get install -y unminimize && yes | unminimize
 
-# Tools useful in both variants. Keep servers and runtime managers out of base.
+# SSH and general tools are shared; keep VS Code and runtime managers out of base.
 RUN apt-get install -y --no-install-recommends \
     bash-completion build-essential ca-certificates curl fd-find file fzf git \
-    gnupg2 gzip htop iproute2 jq less locales lsof nano openssh-client openssl \
+    gnupg2 gzip htop iproute2 jq less locales lsof nano openssh-client openssh-server openssl \
     pkg-config procps python3 python3-pip python3-venv pipx ripgrep rsync \
     shellcheck sudo tar tmux tree tzdata unzip wget xz-utils zip && \
     locale-gen --purge en_US.UTF-8 && \
@@ -21,9 +21,11 @@ RUN apt-get install -y --no-install-recommends \
     chmod 0440 /etc/sudoers.d/ubuntu && \
     mkdir -p /workspaces && chown ubuntu:ubuntu /workspaces && \
     ln -s /usr/bin/fdfind /usr/local/bin/fd && \
+    rm -f /etc/ssh/ssh_host_* && \
     rm -rf /var/lib/apt/lists/*
 
 ENV LANG=en_US.UTF-8
+EXPOSE 22
 
 FROM base AS sandbox
 
@@ -42,7 +44,7 @@ ENV NVM_DIR=/home/ubuntu/.nvm \
     BASH_ENV=/home/ubuntu/.bash_env \
     NVM_SYMLINK_CURRENT=true
 RUN touch "$BASH_ENV" && \
-    printf '\n. "%s"\n' "$BASH_ENV" >> /home/ubuntu/.bashrc && \
+    sed -i '1i . /home/ubuntu/.bash_env' /home/ubuntu/.bashrc && \
     NVM_VERSION=$(curl -fsSL https://api.github.com/repos/nvm-sh/nvm/releases/latest | jq -er '.tag_name') && \
     curl -fsSL "https://raw.githubusercontent.com/nvm-sh/nvm/${NVM_VERSION}/install.sh" | PROFILE="$BASH_ENV" bash
 RUN . "$BASH_ENV" && \
@@ -53,16 +55,19 @@ ENV PATH="/home/ubuntu/.local/bin:${NVM_DIR}/current/bin:${PATH}"
 RUN curl -fsSL https://astral.sh/uv/install.sh | \
     env UV_INSTALL_DIR=/home/ubuntu/.local/bin UV_NO_MODIFY_PATH=1 sh
 
+USER root
+COPY --chmod=0755 sandbox-entrypoint.sh /sandbox-entrypoint.sh
 WORKDIR /workspaces
-# No services, entrypoint, volumes, host credentials, or Docker socket.
-CMD ["/bin/bash"]
+# SSH runs in the foreground; alternate commands run as ubuntu.
+ENTRYPOINT ["/sandbox-entrypoint.sh"]
+CMD ["sshd"]
 
 # Keep dev last so a plain docker build retains the existing dev default.
 FROM base AS dev
 
 # Retain the existing remote-development services.
 RUN apt-get update && apt-get install -y \
-    ack bc command-not-found screen cloc needrestart neovim openssh-server \
+    ack bc command-not-found screen cloc needrestart neovim \
     unattended-upgrades binutils-gold libc6-dev libcurl4-openssl-dev libedit2 \
     libncurses-dev libpython3-dev libsqlite3-0 libxml2-dev libz3-dev zlib1g-dev
 

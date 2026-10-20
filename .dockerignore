@@ -1,4 +1,5 @@
-# Only the Dockerfile and dev entrypoint are required in the build context.
+# Only the Dockerfile and entrypoints are required in the build context.
 **
 !Dockerfile
 !entrypoint.sh
+!sandbox-entrypoint.sh

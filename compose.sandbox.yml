@@ -1,5 +1,5 @@
 # Use this file on its own; do not merge it with the persistent dev service.
-# docker compose -f compose.sandbox.yml run --rm sandbox
+# KEYS="$(cat ~/.ssh/id_ed25519.pub)" docker compose -f compose.sandbox.yml run --rm -d --service-ports --name vm-sandbox sandbox
 services:
   sandbox:
     image: ghcr.io/thaddeuskkr/vm:sandbox
@@ -8,8 +8,15 @@ services:
     stdin_open: true
     tty: true
     working_dir: /workspaces
+    environment:
+      KEYS: "${KEYS:-}"
+      PASSWORD: "${PASSWORD:-}"
+      SSH_PASSWORD_AUTH: "${SSH_PASSWORD_AUTH:-false}"
+      SSH_ROOT_LOGIN: "${SSH_ROOT_LOGIN:-false}"
+    ports:
+      - "${SANDBOX_SSH_PORT:-2223}:22"
     pids_limit: 512
     mem_limit: 4g
     cpus: 2
-    # No bind mounts, named volumes, published ports, or Docker socket.
+    # No bind mounts, named volumes, private keys, or Docker socket.
     # sudo intentionally works so apt installs are possible inside the sandbox.

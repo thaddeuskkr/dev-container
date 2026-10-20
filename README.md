@@ -15,24 +15,34 @@ Both variants use an unminimized `ubuntu:latest` base, following the official im
 
 ## Disposable sandbox
 
+Both images include OpenSSH Server. The sandbox starts SSH by default; its Compose port is **2223**, while the dev container keeps **2222**.
+
+Start a disposable SSH sandbox using your public key:
+
 ```sh
-docker compose -f compose.sandbox.yml run --rm sandbox
+export KEYS="$(cat ~/.ssh/id_ed25519.pub)"
+docker compose -f compose.sandbox.yml \
+  run --rm -d --service-ports --name vm-sandbox sandbox
+ssh -p 2223 ubuntu@localhost
 ```
 
-Use the sandbox Compose file **on its own**. It sets a 4 GiB memory limit, a two-CPU limit, and a 512-process limit. It has normal outbound internet access, publishes no ports, and mounts no host directories, home volume, credentials, or Docker socket. The dev service is not started by this command.
+Choose your own public key file if it differs. Only the public key text is passed into the container. Use the sandbox Compose file **on its own**. It sets a 4 GiB memory limit, a two-CPU limit, and a 512-process limit. It has normal outbound internet access and mounts no host directories, home volume, private keys, or Docker socket. `--service-ports` enables the configured SSH port for `compose run`; set `SANDBOX_SSH_PORT` to change it.
 
 Or use Docker directly:
 
 ```sh
-docker run --rm -it --init \
-  --hostname sandbox \
+docker run --rm -d --init \
+  --name vm-sandbox --hostname sandbox \
   --memory 4g --cpus 2 --pids-limit 512 \
+  -p 2223:22 -e KEYS="$(cat ~/.ssh/id_ed25519.pub)" \
   thadkkr/vm:sandbox
+ssh -p 2223 ubuntu@localhost
 ```
 
-The shell runs as `ubuntu`, in `/workspaces`. Passwordless sudo lets you install system packages:
+SSH logs in as `ubuntu`, with passwordless sudo. Use `/workspaces` for experiments:
 
 ```sh
+cd /workspaces
 sudo apt-get update
 sudo apt-get install -y your-package
 uv venv --python python3 /tmp/experiment
@@ -40,11 +50,27 @@ uv venv --python python3 /tmp/experiment
 # Install Python libraries with uv pip install, or use uv tool / pipx for CLIs.
 ```
 
-Files, installed packages, shell history, and downloaded projects stay inside this container. Exit the shell to remove the container and its writable layer; the next invocation starts fresh. This is enforced by the launch command's `--rm`, not by the image itself. Avoid `docker compose up` for disposable sessions, because it retains containers until explicitly removed.
+Public-key authentication is the default. For password login, set `SSH_PASSWORD_AUTH=true` and `PASSWORD`; if `PASSWORD` is omitted, a generated password is printed in the container logs. Root SSH login defaults to disabled (`SSH_ROOT_LOGIN=false`). SSH startup requires either `KEYS` or enabled password authentication. nvm, Node LTS, and uv are available in SSH shells and remote commands.
 
-This does not mean zero host disk writes: Docker stores image layers and temporary container data in its own storage. Host projects are protected by the absence of mounts. See Docker's [container storage documentation](https://docs.docker.com/engine/containers/run/#filesystem-mounts).
+**Logging out of SSH leaves the sandbox running**, so you can reconnect. To discard it and all changes:
 
-The sandbox has no SSH server, VS Code, Docker Engine/CLI, GitHub CLI, Bun, Deno, or pnpm. Use `docker exec -it <container> bash` if you need another shell in a running session. It has standard container isolation and network access, including access to reachable LAN services; it is not a separate-kernel VM for running hostile malware.
+```sh
+docker stop vm-sandbox
+```
+
+The `--rm` launch option automatically removes the stopped container and its writable layer. Its files, installed packages, downloaded projects, shell history, and SSH host keys are discarded; the next invocation starts fresh. New sandboxes generate new host keys. If recreating the sandbox causes a host-key change message, remove its old local entry with `ssh-keygen -R '[localhost]:2223'` after confirming that you recreated it.
+
+For a one-off local terminal instead of the SSH service, override the command:
+
+```sh
+docker compose -f compose.sandbox.yml run --rm sandbox bash
+```
+
+This runs as `ubuntu`, needs no SSH credentials, publishes no ports, and is removed when you exit. For an extra local shell in an already running SSH sandbox, use `docker exec -it --user ubuntu vm-sandbox bash`.
+
+Docker still stores image layers and temporary container data in its own storage. Host projects are protected by the absence of mounts. See Docker's [container storage documentation](https://docs.docker.com/engine/containers/run/#filesystem-mounts). Avoid `docker compose up` when you want automatic removal, because it retains containers until explicitly removed.
+
+The sandbox has no VS Code, Docker Engine/CLI, GitHub CLI, Bun, Deno, or pnpm. It has standard container isolation and access to reachable LAN services; it is not a separate-kernel VM for running hostile malware.
 
 ### Sandbox tools and why they are included
 
@@ -53,7 +79,7 @@ The sandbox has no SSH server, VS Code, Docker Engine/CLI, GitHub CLI, Bun, Deno
 | CLI development | GCC/G++, make, pkg-config, Git, nvm with Node.js LTS/npm, Python 3, uv/uvx, pip, venv, pipx | Compile small projects and try CLI packages; nvm installs the latest Node LTS at build time, Python uses Ubuntu's maintained version, and uv manages Python environments and tools |
 | Everyday shell work | curl, wget, jq, ripgrep, fd, fzf, tree, nano, less, tmux, rsync, zip/unzip, xz | Download, search, inspect, edit, and manipulate test data |
 | Network and DNS | Nmap, netcat, socat, dig/host/nslookup, whois, ip/ss, ping, traceroute | Inspect connectivity, DNS, exposed services, and test TCP/UDP clients |
-| TLS and keys | OpenSSL, GnuPG, OpenSSH client | Inspect certificates and try cryptographic or SSH workflows without host keys mounted |
+| TLS and SSH | OpenSSL, GnuPG, OpenSSH client/server | Inspect certificates, connect over SSH, and try SSH workflows without mounting host keys |
 | HTTP discovery | Gobuster | Test directory/file and DNS discovery with your own small wordlists |
 | Packet inspection | tcpdump | Inspect capture files or, with `sudo`, traffic visible inside the container |
 | File and binary inspection | file, binutils (`strings`, `readelf`, `objdump`), xxd, YARA | Inspect file types, binaries, hex data, and match your own rules |
@@ -132,7 +158,7 @@ docker buildx bake sandbox --set '*.platform=linux/arm64' --load
 bash tests/smoke.sh sandbox thadkkr/vm:sandbox
 ```
 
-GitHub Actions runs daily, on relevant pushes, on pull requests, and manually. The matrix builds both variants on native AMD64/ARM64 Linux runners and smoke-tests each before publishing. The sandbox checks cover tool availability, sudo/package installation, nvm/Node LTS selection, uv-created Python environments, direct runtime commands, and discarded filesystem changes. Dev builds compile and execute a Foundation program as `ubuntu`. Smoke checks also build and execute a Swift package with a standard SSH/sudo PATH and the home directory masked by an empty temporary mount, alongside the existing tool, runtime-manager, and SSH checks; they do not authenticate an actual VS Code tunnel.
+GitHub Actions runs daily, on relevant pushes, on pull requests, and manually. The matrix builds both variants on native AMD64/ARM64 Linux runners and smoke-tests each before publishing. Both variants also undergo a real public-key SSH login check; the dev tunnel is stubbed for that check so it requires no external sign-in. Sandbox SSH checks exercise nvm, Node LTS, uv, and sudo through a remote command. The sandbox checks also cover tool availability, sudo/package installation, nvm/Node LTS selection, uv-created Python environments, direct runtime commands, and discarded filesystem changes. Dev builds compile and execute a Foundation program as `ubuntu`. Smoke checks also build and execute a Swift package with a standard SSH/sudo PATH and the home directory masked by an empty temporary mount, alongside the existing tool, runtime-manager, and SSH checks; they do not authenticate an actual VS Code tunnel.
 
 Publishing runs only on the repository's default branch. Pull requests and other branches build/test without logging in or publishing. Successful builds push architecture digests to registries with available credentials, then create separate multiarch manifests for each variant. The workflow verifies that each dated manifest contains both AMD64 and ARM64. Caches are scoped by variant/architecture; scheduled builds bypass cached installers to refresh packages.
 

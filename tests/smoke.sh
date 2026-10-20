@@ -6,18 +6,18 @@ image=${2:?Usage: smoke.sh dev\|sandbox image}
 
 case "$variant" in
   sandbox)
-    test "$(docker image inspect --format '{{json .Config.Entrypoint}}' "$image")" = null
+    test "$(docker image inspect --format '{{json .Config.Entrypoint}}' "$image")" = '["/sandbox-entrypoint.sh"]'
     test "$(docker image inspect --format '{{json .Config.Volumes}}' "$image")" = null
-    test "$(docker image inspect --format '{{json .Config.Cmd}}' "$image")" = '["/bin/bash"]'
+    test "$(docker image inspect --format '{{json .Config.Cmd}}' "$image")" = '["sshd"]'
     # Exercise the normal image command path, sudo installs, and working files.
     docker run --rm --init "$image" bash -euc '
       test "$(id -un)" = ubuntu
       test "$PWD" = /workspaces
       for tool in git curl jq rg fd gcc make python3 pipx nvm node npm uv uvx shellcheck \
-          nmap nc socat dig whois openssl tcpdump gobuster yara readelf xxd; do
+          nmap nc socat dig whois openssl tcpdump gobuster yara readelf xxd sshd; do
         command -v "$tool"
       done
-      for tool in code sshd docker bun deno swift swiftc; do
+      for tool in code docker bun deno swift swiftc; do
         if command -v "$tool"; then
           echo "Unexpected dev-only tool: $tool" >&2
           exit 1
@@ -72,3 +72,6 @@ case "$variant" in
     ;;
   *) echo "Unknown variant: $variant" >&2; exit 1 ;;
 esac
+
+# Authenticate an actual SSH session in the default sandbox/server startup path.
+bash tests/ssh.sh "$variant" "$image"
