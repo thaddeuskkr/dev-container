@@ -155,12 +155,11 @@ docker buildx bake --push
 ```sh
 docker buildx bake sandbox --set '*.platform=linux/arm64' --load
 # Use linux/amd64 on an AMD64 machine.
-bash tests/smoke.sh sandbox thadkkr/vm:sandbox
 ```
 
-GitHub Actions runs daily, on relevant pushes, on pull requests, and manually. The matrix builds both variants on native AMD64/ARM64 Linux runners and smoke-tests each before publishing. Both variants also undergo a real public-key SSH login check; the dev tunnel is stubbed for that check so it requires no external sign-in. Sandbox SSH checks exercise nvm, Node LTS, uv, and sudo through a remote command. The sandbox checks also cover tool availability, sudo/package installation, nvm/Node LTS selection, uv-created Python environments, direct runtime commands, and discarded filesystem changes. Dev builds compile and execute a Foundation program as `ubuntu`. Smoke checks also build and execute a Swift package with a standard SSH/sudo PATH and the home directory masked by an empty temporary mount, alongside the existing tool, runtime-manager, and SSH checks; they do not authenticate an actual VS Code tunnel.
+GitHub Actions runs daily, on relevant pushes, on pull requests, and manually. The matrix builds both variants on native AMD64/ARM64 Linux runners.
 
-Publishing runs only on the repository's default branch. Pull requests and other branches build/test without logging in or publishing. Successful builds push architecture digests to registries with available credentials, then create separate multiarch manifests for each variant. The workflow verifies that each dated manifest contains both AMD64 and ARM64. Caches are scoped by variant/architecture; scheduled builds bypass cached installers to refresh packages.
+Publishing runs only on the repository's default branch. Pull requests and other branches build without logging in or publishing. Successful builds push architecture digests to registries with available credentials, then create separate multiarch manifests for each variant. The workflow verifies that each dated manifest contains both AMD64 and ARM64. Caches are scoped by variant/architecture; scheduled builds bypass cached installers to refresh packages.
 
 Repository setup:
 
@@ -169,6 +168,6 @@ Repository setup:
 - Set the GHCR package's visibility to public if anonymous pulls are desired.
 - After the GitHub repository is renamed to `thaddeuskkr/vm`, the README's repository links and badge use that name. The workflow's source label follows the actual repository automatically.
 
-Registry selection applies to login, architecture pushes, and multiarch manifest publication independently. If neither registry is enabled, the workflow still builds and tests all four images, then skips publishing and digest uploads. Configured but invalid credentials still cause a publishing error.
+Registry selection applies to login, architecture pushes, and multiarch manifest publication independently. If neither registry is enabled, the workflow still builds all four images, then skips publishing and digest uploads. Configured but invalid credentials still cause a publishing error.
 
 The workflow follows Docker's documented [native runner/multi-platform publishing pattern](https://docs.docker.com/build/ci/github-actions/multi-platform/).

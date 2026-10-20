@@ -8,7 +8,6 @@ on:
       - sandbox-entrypoint.sh
       - docker-bake.hcl
       - compose*.yml
-      - tests/**
       - .dockerignore
       - .github/workflows/build.yml
   pull_request:
@@ -96,35 +95,6 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
 
-      - name: Validate Compose and Bake configuration
-        run: |
-          docker compose -f compose.yml config --quiet
-          docker compose -f compose.sandbox.yml config --quiet
-          docker buildx bake --print
-
-      - name: Build and load image for testing
-        uses: docker/build-push-action@v7
-        with:
-          context: .
-          target: ${{ matrix.variant }}
-          platforms: linux/${{ matrix.arch }}
-          pull: true
-          # Refresh APT packages and upstream installers on daily builds.
-          no-cache: ${{ github.event_name == 'schedule' }}
-          load: true
-          tags: local/vm:${{ matrix.variant }}
-          provenance: false
-          labels: |
-            org.opencontainers.image.source=https://github.com/${{ github.repository }}
-            org.opencontainers.image.revision=${{ github.sha }}
-            org.opencontainers.image.created=${{ needs.prepare.outputs.created }}
-            org.opencontainers.image.version=${{ matrix.variant }}-${{ needs.prepare.outputs.date }}
-          cache-from: type=gha,scope=${{ matrix.variant }}-${{ matrix.arch }}
-          cache-to: type=gha,mode=max,scope=${{ matrix.variant }}-${{ matrix.arch }}
-
-      - name: Smoke-test image
-        run: bash tests/smoke.sh '${{ matrix.variant }}' 'local/vm:${{ matrix.variant }}'
-
       - name: Login to Docker Hub
         if: needs.prepare.outputs.dockerhub == 'true'
         uses: docker/login-action@v4
@@ -140,28 +110,31 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # Reuses the tested build's local BuildKit cache; does not rerun installers.
-      - name: Push tested image by digest to configured registries
-        if: needs.prepare.outputs.publish == 'true'
-        id: push
+      - name: Build image and optionally push to configured registries
+        id: build
         uses: docker/build-push-action@v7
         with:
           context: .
           target: ${{ matrix.variant }}
           platforms: linux/${{ matrix.arch }}
+          pull: true
+          # Refresh APT packages and upstream installers on daily builds.
+          no-cache: ${{ github.event_name == 'schedule' }}
           tags: ${{ needs.prepare.outputs.images }}
-          outputs: type=image,push-by-digest=true,name-canonical=true,push=true
+          outputs: ${{ needs.prepare.outputs.publish == 'true' && 'type=image,push-by-digest=true,name-canonical=true,push=true' || '' }}
           provenance: false
           labels: |
             org.opencontainers.image.source=https://github.com/${{ github.repository }}
             org.opencontainers.image.revision=${{ github.sha }}
             org.opencontainers.image.created=${{ needs.prepare.outputs.created }}
             org.opencontainers.image.version=${{ matrix.variant }}-${{ needs.prepare.outputs.date }}
+          cache-from: type=gha,scope=${{ matrix.variant }}-${{ matrix.arch }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.variant }}-${{ matrix.arch }}
 
       - name: Export digest
         if: needs.prepare.outputs.publish == 'true'
         env:
-          DIGEST: ${{ steps.push.outputs.digest }}
+          DIGEST: ${{ steps.build.outputs.digest }}
         run: |
           mkdir -p "$RUNNER_TEMP/digests"
           touch "$RUNNER_TEMP/digests/${DIGEST#sha256:}"

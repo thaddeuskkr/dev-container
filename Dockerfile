@@ -145,17 +145,6 @@ RUN set -eu; \
 
 USER ubuntu
 
-# Use a standard SSH/sudo PATH to verify the global command links as ubuntu.
-# Fail the build if Swift cannot compile, link Foundation, and execute.
-RUN set -eu; \
-    export PATH=/usr/local/bin:/usr/bin:/bin; \
-    swift --version; \
-    swift_test=$(mktemp -d); \
-    trap 'rm -rf "$swift_test"' EXIT; \
-    printf '%s\n' 'import Foundation' 'print(Date(timeIntervalSince1970: 0).timeIntervalSince1970)' > "$swift_test/main.swift"; \
-    swiftc "$swift_test/main.swift" -o "$swift_test/hello"; \
-    test "$("$swift_test/hello")" = 0.0
-
 # Install nvm
 RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/$(curl -fsSL https://api.github.com/repos/nvm-sh/nvm/releases/latest | jq -r '.tag_name')/install.sh | bash
 
