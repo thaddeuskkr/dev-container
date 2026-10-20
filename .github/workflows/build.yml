@@ -34,16 +34,47 @@ jobs:
       date: ${{ steps.build.outputs.date }}
       created: ${{ steps.build.outputs.created }}
       publish: ${{ steps.build.outputs.publish }}
+      dockerhub: ${{ steps.build.outputs.dockerhub }}
+      ghcr: ${{ steps.build.outputs.ghcr }}
+      images: ${{ steps.build.outputs.images }}
     steps:
-      - name: Choose one UTC build date for every variant and architecture
+      - name: Choose build date and available publishing destinations
         id: build
         env:
           PUBLISH: ${{ github.event_name != 'pull_request' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch) }}
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PUBLISH_GHCR: ${{ vars.PUBLISH_GHCR }}
         run: |
+          dockerhub=false
+          ghcr=false
+          images=()
+          if [ "$PUBLISH" = true ]; then
+            if [ -n "$DOCKERHUB_TOKEN" ]; then
+              dockerhub=true
+              images+=("$DOCKERHUB_IMAGE")
+            else
+              echo "::notice::Skipping Docker Hub: DOCKERHUB_TOKEN is not configured."
+            fi
+            if [ "$PUBLISH_GHCR" = false ]; then
+              echo "::notice::Skipping GHCR: PUBLISH_GHCR is false."
+            elif [ -n "$GHCR_TOKEN" ]; then
+              ghcr=true
+              images+=("$GHCR_IMAGE")
+            else
+              echo "::notice::Skipping GHCR: GITHUB_TOKEN is not available."
+            fi
+          fi
+          if [ "${#images[@]}" -eq 0 ]; then
+            PUBLISH=false
+          fi
           {
             echo "date=$(date -u +%Y%m%d)"
             echo "created=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
             echo "publish=$PUBLISH"
+            echo "dockerhub=$dockerhub"
+            echo "ghcr=$ghcr"
+            echo "images=$(IFS=,; echo "${images[*]}")"
           } >> "$GITHUB_OUTPUT"
 
   build:
@@ -94,14 +125,14 @@ jobs:
         run: bash tests/smoke.sh '${{ matrix.variant }}' 'local/vm:${{ matrix.variant }}'
 
       - name: Login to Docker Hub
-        if: needs.prepare.outputs.publish == 'true'
+        if: needs.prepare.outputs.dockerhub == 'true'
         uses: docker/login-action@v4
         with:
           username: thadkkr
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Login to GHCR
-        if: needs.prepare.outputs.publish == 'true'
+        if: needs.prepare.outputs.ghcr == 'true'
         uses: docker/login-action@v4
         with:
           registry: ghcr.io
@@ -109,7 +140,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       # Reuses the tested build's local BuildKit cache; does not rerun installers.
-      - name: Push tested image by digest to both registries
+      - name: Push tested image by digest to configured registries
         if: needs.prepare.outputs.publish == 'true'
         id: push
         uses: docker/build-push-action@v7
@@ -117,9 +148,7 @@ jobs:
           context: .
           target: ${{ matrix.variant }}
           platforms: linux/${{ matrix.arch }}
-          tags: |
-            ${{ env.DOCKERHUB_IMAGE }}
-            ${{ env.GHCR_IMAGE }}
+          tags: ${{ needs.prepare.outputs.images }}
           outputs: type=image,push-by-digest=true,name-canonical=true,push=true
           provenance: false
           labels: |
@@ -164,12 +193,14 @@ jobs:
           merge-multiple: true
 
       - name: Login to Docker Hub
+        if: needs.prepare.outputs.dockerhub == 'true'
         uses: docker/login-action@v4
         with:
           username: thadkkr
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Login to GHCR
+        if: needs.prepare.outputs.ghcr == 'true'
         uses: docker/login-action@v4
         with:
           registry: ghcr.io
@@ -179,16 +210,18 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
 
-      - name: Publish and verify multiarch tags in both registries
+      - name: Publish and verify multiarch tags in configured registries
         working-directory: ${{ runner.temp }}/digests
         env:
           VARIANT: ${{ matrix.variant }}
           BUILD_DATE: ${{ needs.prepare.outputs.date }}
           REVISION: ${{ github.sha }}
+          PUBLISH_IMAGES: ${{ needs.prepare.outputs.images }}
         run: |
+          IFS=, read -r -a images <<< "$PUBLISH_IMAGES"
           digests=(*)
           test "${#digests[@]}" -eq 2
-          for image in "$DOCKERHUB_IMAGE" "$GHCR_IMAGE"; do
+          for image in "${images[@]}"; do
             sources=()
             for digest in "${digests[@]}"; do
               sources+=("$image@sha256:$digest")

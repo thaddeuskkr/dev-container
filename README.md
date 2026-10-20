@@ -9,7 +9,7 @@ Two Ubuntu images, each built for **linux/amd64** and **linux/arm64**:
 | Dev | `thadkkr/vm:dev` | `ghcr.io/thaddeuskkr/vm:dev` | Persistent remote development with SSH and a VS Code tunnel |
 | Sandbox | `thadkkr/vm:sandbox` | `ghcr.io/thaddeuskkr/vm:sandbox` | Disposable CLI, development, and security experiments |
 
-Every published build also gets `dev-YYYYMMDD` and `sandbox-YYYYMMDD` tags, using one UTC date for the entire workflow. For example, `thadkkr/vm:sandbox-20261020`. Both registries also receive `dev-sha-<full-commit>` and `sandbox-sha-<full-commit>` tags. A date tag selects the last successful build that day; use an image digest to pin exact contents. There is no ambiguous `latest` tag.
+Every published build also gets `dev-YYYYMMDD` and `sandbox-YYYYMMDD` tags, using one UTC date for the entire workflow. For example, `thadkkr/vm:sandbox-20261020`. Each enabled registry also receives `dev-sha-<full-commit>` and `sandbox-sha-<full-commit>` tags. A date tag selects the last successful build that day; use an image digest to pin exact contents. There is no ambiguous `latest` tag.
 
 Both variants use an unminimized `ubuntu:latest` base, following the official image's latest LTS release. Daily builds refresh the base image, APT packages, and upstream installers.
 
@@ -134,13 +134,15 @@ bash tests/smoke.sh sandbox thadkkr/vm:sandbox
 
 GitHub Actions runs daily, on relevant pushes, on pull requests, and manually. The matrix builds both variants on native AMD64/ARM64 Linux runners and smoke-tests each before publishing. The sandbox checks cover tool availability, sudo/package installation, nvm/Node LTS selection, uv-created Python environments, direct runtime commands, and discarded filesystem changes. Dev builds compile and execute a Foundation program as `ubuntu`. Smoke checks also build and execute a Swift package with a standard SSH/sudo PATH and the home directory masked by an empty temporary mount, alongside the existing tool, runtime-manager, and SSH checks; they do not authenticate an actual VS Code tunnel.
 
-Publishing runs only on the repository's default branch. Pull requests and other branches build/test without logging in or publishing. Successful builds push architecture digests to both registries, then create separate multiarch manifests for each variant. The workflow verifies that each dated manifest contains both AMD64 and ARM64. Caches are scoped by variant/architecture; scheduled builds bypass cached installers to refresh packages.
+Publishing runs only on the repository's default branch. Pull requests and other branches build/test without logging in or publishing. Successful builds push architecture digests to registries with available credentials, then create separate multiarch manifests for each variant. The workflow verifies that each dated manifest contains both AMD64 and ARM64. Caches are scoped by variant/architecture; scheduled builds bypass cached installers to refresh packages.
 
 Repository setup:
 
-- Create Docker Hub repository `thadkkr/vm` and add repository secret `DOCKERHUB_TOKEN`, using a token with write permission for that repository.
-- GHCR publishes as `ghcr.io/thaddeuskkr/vm` using `GITHUB_TOKEN` with `packages: write`; ensure the package permits this repository's Actions workflow to publish.
+- To publish to Docker Hub, create repository `thadkkr/vm` and add repository secret `DOCKERHUB_TOKEN`, using a token with write permission for that repository. Without that secret, Docker Hub login and pushes are skipped.
+- GHCR publishes as `ghcr.io/thaddeuskkr/vm` using the automatically provided `GITHUB_TOKEN` with `packages: write`; ensure the package permits this repository's Actions workflow to publish. If the token is unavailable, GHCR login and pushes are skipped. To explicitly disable GHCR even when the automatic token exists, set repository variable `PUBLISH_GHCR` to `false`.
 - Set the GHCR package's visibility to public if anonymous pulls are desired.
 - After the GitHub repository is renamed to `thaddeuskkr/vm`, the README's repository links and badge use that name. The workflow's source label follows the actual repository automatically.
+
+Registry selection applies to login, architecture pushes, and multiarch manifest publication independently. If neither registry is enabled, the workflow still builds and tests all four images, then skips publishing and digest uploads. Configured but invalid credentials still cause a publishing error.
 
 The workflow follows Docker's documented [native runner/multi-platform publishing pattern](https://docs.docker.com/build/ci/github-actions/multi-platform/).
